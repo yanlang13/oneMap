@@ -9,6 +9,7 @@ import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 public class DBHelper extends SQLiteOpenHelper {
 	final static int DB_VERSION = 1;
@@ -70,11 +71,12 @@ public class DBHelper extends SQLiteOpenHelper {
 			values.put(FIELD_DESC, layer.getDesc());
 			values.put(FIELD_KML_STRING, layer.getKmlString());
 			values.put(FIELD_DISPLAY, layer.getDisplay());
-
 			// 3. insert
 			db.insert(TABLE_LAYERS, null, values);
 			// 4. close
 			db.close();
+		}else{
+			Toast.makeText(context, "duplicate kml file", Toast.LENGTH_SHORT).show();
 		}
 	}// end of addLayer
 

@@ -51,7 +51,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements ConnectionCallbacks,
 		LocationListener, OnMyLocationButtonClickListener,
 		OnConnectionFailedListener {
-	private MapTools mapTools = new MapTools(); 
+	private MapTools mapTools = new MapTools();
 	private ProgressDialog progressDialog;
 	private GoogleMap map;
 
@@ -82,7 +82,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		ds = new DefaultSettings(MainActivity.this);
 		setContentView(R.layout.single_maps);
 		progressDialog = new ProgressDialog(this);
-		
 		setLeftDrawer();
 	}// end of onCreate
 
@@ -204,8 +203,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 				mapTools.callTheLastCameraPosition(getApplicationContext(),
 						map, THE_LAST_CP);
 				setBaseMap(map, position);
-				
-				//TODO 開啟DATABASE把DISPLAY TRUE的KML放入地圖
+
+				// TODO 開啟DATABASE把DISPLAY TRUE的KML放入地圖
 			}
 		}
 		map.setMyLocationEnabled(true);
@@ -367,7 +366,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 				// TODO 不要clear
 				map.clear();
-				map.addPolygon(po);
+				map.addPolygon(po);  
 
 				final PolygonOptions po1 = po;
 				// TODO 點擊POLYGON時，顯示INFOWINDOW

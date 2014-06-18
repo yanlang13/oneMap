@@ -34,10 +34,10 @@ public class ListSdCard extends Activity {
 
 	// 處理Directory的排列，KML - DIR (A to Z)
 	private ArrayList<String> KmlList, DirList;
-	
-	//寫kml file的資料到database
+
+	// 寫kml file的資料到database
 	private DBHelper dbHelper;
-	
+
 	// ============================================================ onCreate ING
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -53,7 +53,7 @@ public class ListSdCard extends Activity {
 		KmlList = new ArrayList<String>();
 		DirList = new ArrayList<String>();
 		dbHelper = new DBHelper(this);
-		
+
 		// TODO 強化進入ExternalStorageDirectory的問題判斷(androdi developer)
 		String root_sd = Environment.getExternalStorageDirectory().toString();
 
@@ -74,24 +74,29 @@ public class ListSdCard extends Activity {
 					setPageUp(position);
 					// 取得路徑，轉為file
 					File tempFile = new File(file, folderList.get(position));
-					
-					String fileName = tempFile.getName();
+
 					// 如果是folder，就在做List
 					if (tempFile.isDirectory()) {
 						file = new File(file, folderList.get(position));
 						getKmlAndDir(file, lv);
 					}
 					
-					//TODO 如果是KML就要載入database (display true)，NAME照檔案名稱，後面空白unedited。
-					if(fileName.endsWith(".kml")){
-						//取出kml file的檔案名稱 (.kml不要)
-						String title = fileName.substring(0,fileName.length()-4);
+					// TODO 如果是KML就要載入database (display
+					// true)，NAME照檔案名稱，後面空白unedited。
+					String fileName = tempFile.getName();
+					if (fileName.endsWith(".kml")) {
+						// 取出kml file的檔案名稱 (.kml不要)
+						String title = fileName.substring(0,
+								fileName.length() - 4);
+						String kmlString = OtherTools.fileToString(tempFile);
 						Layer layer = new Layer();
 						layer.setTitle(title);
+						layer.setKmlString(kmlString);
+						layer.setDisplay("true");
 						dbHelper.addLayer(layer);
-						Log.d("mdb", "is kml");
+						Log.d("mdb", "stroage kml file to database");
 					}
-				
+
 				}
 			});// end of setOnItemClickListener
 
@@ -143,7 +148,7 @@ public class ListSdCard extends Activity {
 	private void getKmlAndDir(File directory, ListView listView) {
 
 		clearAllList();
-		
+
 		// 插入BACK TO UPPER FOLDER到LIST的第一個欄位
 		folderList.add(0, "page up.../");
 
@@ -163,7 +168,7 @@ public class ListSdCard extends Activity {
 				}
 			}
 		}// end of for
-		
+
 		sortAndAddToList(KmlList);
 		sortAndAddToList(DirList);
 
@@ -174,16 +179,18 @@ public class ListSdCard extends Activity {
 	/**
 	 * clear folderList, DirList, KmlList
 	 */
-	private void clearAllList(){
+	private void clearAllList() {
 		folderList.clear();
 		DirList.clear();
 		KmlList.clear();
-		
+
 	}// end of tempListClear
-	
+
 	/**
-	 * sort string by A to Z 
-	 * @param arrayList (String)
+	 * sort string by A to Z
+	 * 
+	 * @param arrayList
+	 *            (String)
 	 */
 	private void sortAndAddToList(ArrayList<String> arrayList) {
 		Collections.sort(arrayList);
