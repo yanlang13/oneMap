@@ -1,11 +1,11 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_HYBRID;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NONE;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
-import com.example.multiplemaps.MapTools;
+import com.example.onemap.MapTools;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
@@ -82,7 +82,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		ds = new DefaultSettings(MainActivity.this);
 		setContentView(R.layout.single_maps);
 		progressDialog = new ProgressDialog(this);
-		MainActivity.this.deleteDatabase("MultiMaps.db");
 		
 		setLeftDrawer();
 	}// end of onCreate
@@ -205,6 +204,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 				mapTools.callTheLastCameraPosition(getApplicationContext(),
 						map, THE_LAST_CP);
 				setBaseMap(map, position);
+				
+				//TODO 開啟DATABASE把DISPLAY TRUE的KML放入地圖
 			}
 		}
 		map.setMyLocationEnabled(true);

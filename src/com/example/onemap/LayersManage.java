@@ -1,4 +1,4 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -6,7 +6,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import com.example.multiplemaps.JSONObject;
+
+import com.example.onemap.JSONObject;
+import com.example.onemap.R;
+
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
@@ -39,7 +42,7 @@ public class LayersManage extends Activity {
 		setContentView(R.layout.layers_manage);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
-		
+
 		spUMap = (Spinner) findViewById(R.id.sp_manage_base_map);
 		tvKML = (TextView) findViewById(R.id.tv_manage_GeoJSON);
 		// textview scrolling, 搭配.xml的 android:scrollbars = "vertical"
@@ -116,6 +119,8 @@ public class LayersManage extends Activity {
 
 	public void exportDatabase(View view) {
 		OtherTools.copyDBtoSDcard();
+		Toast.makeText(LayersManage.this, "export db to SD card",
+				Toast.LENGTH_SHORT).show();
 	}// end of exportDatabase
 
 	// ============================================================ onCreated

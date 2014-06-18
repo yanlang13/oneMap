@@ -1,4 +1,4 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 /**
  * The JSONException is thrown by the JSON.org classes when things are amiss.

@@ -1,4 +1,4 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 import java.util.HashMap;
 import java.util.List;

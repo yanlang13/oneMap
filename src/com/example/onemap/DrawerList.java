@@ -1,4 +1,6 @@
-package com.example.multiplemaps;
+package com.example.onemap;
+
+import com.example.onemap.R;
 
 /**
  * drawerLayout的list內容

@@ -1,8 +1,10 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 import java.util.HashMap;
 
 import android.content.Context;
+
+import com.example.onemap.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;

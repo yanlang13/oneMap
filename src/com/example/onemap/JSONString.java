@@ -1,4 +1,4 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 /**
  * The <code>JSONString</code> interface allows a <code>toJSONString()</code>

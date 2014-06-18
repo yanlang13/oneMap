@@ -1,8 +1,9 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 import android.view.LayoutInflater;
 import android.view.View;
 
+import com.example.onemap.R;
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.model.Marker;
 

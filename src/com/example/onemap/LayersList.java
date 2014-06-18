@@ -1,4 +1,6 @@
-package com.example.multiplemaps;
+package com.example.onemap;
+
+import com.example.onemap.R;
 
 import android.app.Activity;
 import android.app.TaskStackBuilder;

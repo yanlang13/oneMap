@@ -1,4 +1,4 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
 	final static int DB_VERSION = 1;
-	private static final String DATABASE_NAME = "MultiMaps.db";
+	private static final String DATABASE_NAME = "oneMaps.db";
 	private static final String TABLE_LAYERS = "layers";
 	// 欄位1，自動產生
 	private static final String FIELD_ID = "id";

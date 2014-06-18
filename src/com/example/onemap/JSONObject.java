@@ -1,4 +1,4 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 /*
  Copyright (c) 2002 JSON.org

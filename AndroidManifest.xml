@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.multiplemaps"
+    package="com.example.onemap"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -41,7 +41,7 @@
             android:value="@integer/google_play_services_version" />
         <!-- End of copy. -->
         <activity
-            android:name="com.example.multiplemaps.MainActivity"
+            android:name=".MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
@@ -51,28 +51,28 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.multiplemaps.LayersManage"
+            android:name=".LayersManage"
             android:label="@string/layers_manage"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.multiplemaps.MainActivity" />
+                android:value="com.example.onemap.MainActivity" />
         </activity>
         <activity
-            android:name="com.example.multiplemaps.LayersList"
+            android:name=".LayersList"
             android:label="@string/layers_list"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.multiplemaps.MainActivity" />
+                android:value="com.example.onemap.MainActivity" />
         </activity>
         <activity
-            android:name="com.example.multiplemaps.ListSdCard"
+            android:name=".ListSdCard"
             android:label="@string/list_sd_card"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.multiplemaps.MainActivity" />
+                android:value="com.example.onemap.MainActivity" />
         </activity>
     </application>
 

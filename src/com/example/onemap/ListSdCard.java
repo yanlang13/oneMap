@@ -1,4 +1,4 @@
-package com.example.multiplemaps;
+package com.example.onemap;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 
+import com.example.onemap.R;
+
+import android.R.string;
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
@@ -31,7 +34,10 @@ public class ListSdCard extends Activity {
 
 	// 處理Directory的排列，KML - DIR (A to Z)
 	private ArrayList<String> KmlList, DirList;
-
+	
+	//寫kml file的資料到database
+	private DBHelper dbHelper;
+	
 	// ============================================================ onCreate ING
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -46,7 +52,8 @@ public class ListSdCard extends Activity {
 		folderList = new ArrayList<String>();
 		KmlList = new ArrayList<String>();
 		DirList = new ArrayList<String>();
-
+		dbHelper = new DBHelper(this);
+		
 		// TODO 強化進入ExternalStorageDirectory的問題判斷(androdi developer)
 		String root_sd = Environment.getExternalStorageDirectory().toString();
 
@@ -66,13 +73,25 @@ public class ListSdCard extends Activity {
 						int position, long id) {
 					setPageUp(position);
 					// 取得路徑，轉為file
-					File temp_file = new File(file, folderList.get(position));
-
+					File tempFile = new File(file, folderList.get(position));
+					
+					String fileName = tempFile.getName();
 					// 如果是folder，就在做List
-					if (temp_file.isDirectory()) {
+					if (tempFile.isDirectory()) {
 						file = new File(file, folderList.get(position));
 						getKmlAndDir(file, lv);
 					}
+					
+					//TODO 如果是KML就要載入database (display true)，NAME照檔案名稱，後面空白unedited。
+					if(fileName.endsWith(".kml")){
+						//取出kml file的檔案名稱 (.kml不要)
+						String title = fileName.substring(0,fileName.length()-4);
+						Layer layer = new Layer();
+						layer.setTitle(title);
+						dbHelper.addLayer(layer);
+						Log.d("mdb", "is kml");
+					}
+				
 				}
 			});// end of setOnItemClickListener
 
@@ -147,22 +166,6 @@ public class ListSdCard extends Activity {
 		
 		sortAndAddToList(KmlList);
 		sortAndAddToList(DirList);
-
-		// for (File f : dirArray) {
-		// // 移除.開頭的檔案(參考ES File Express做處理)
-		// if (!f.getName().startsWith(".")) {
-		// if (f.isDirectory()) {
-		// // StringBulider用來串接字串可以加快效率
-		// // 但如果是單一statement就免了
-		// folderList.add(f.getName() + "/");
-		// } else {
-		// // 只找kml檔案
-		// if (f.getName().endsWith(".kml")) {
-		// folderList.add(f.getName());
-		// }
-		// }
-		// }// end of if
-		// }// end of for
 
 		listView.setAdapter(new ArrayAdapter<String>(ListSdCard.this,
 				android.R.layout.simple_list_item_1, folderList));
