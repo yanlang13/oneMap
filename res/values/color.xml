@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="android_blue">#32b7e8</color>
+    <color name="lava_red">#E42217</color>
+    <color name="gray">#808080</color>
+    <color name="Platinum">#E5E4E2</color>
+    <color name="white">#FFFFFF</color>
+    <color name="Black">#000000</color>
+
+</resources>
