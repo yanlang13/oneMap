@@ -14,10 +14,13 @@ public class classOnMyOnMyLocationButtonClickListener implements
 		OnMyLocationButtonClickListener {
 	private Context context;
 	private LocationClient locationClient;
-	public classOnMyOnMyLocationButtonClickListener(Context context, LocationClient locationClient){
+
+	public classOnMyOnMyLocationButtonClickListener(Context context,
+			LocationClient locationClient) {
 		this.context = context;
 		this.locationClient = locationClient;
 	}
+
 	@Override
 	// OnMyLocationButtonClickListener
 	public boolean onMyLocationButtonClick() {
@@ -31,8 +34,7 @@ public class classOnMyOnMyLocationButtonClickListener implements
 			// 連接服務，等待 onConnected時再將locationRequest的設定值交出
 			locationClient.connect();
 		} else {
-			AlertDialog.Builder builder = new AlertDialog.Builder(
-					context);
+			AlertDialog.Builder builder = new AlertDialog.Builder(context);
 			builder.setTitle("Waring");
 			builder.setMessage("GPS services are turned off on your device. Do you want to go to yout Location settings now?");
 			builder.setPositiveButton("Yes",

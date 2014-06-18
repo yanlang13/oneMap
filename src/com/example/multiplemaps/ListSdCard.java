@@ -1,10 +1,11 @@
 package com.example.multiplemaps;
 
 import java.io.File;
-import java.text.BreakIterator;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 
-import de.micromata.opengis.kml.v_2_2_0.Lod;
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.LayoutInflater.Filter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -26,6 +28,9 @@ public class ListSdCard extends Activity {
 	private ArrayList<String> folderList;
 	private File file;
 	private ListView lv;
+
+	// 處理Directory的排列，KML - DIR (A to Z)
+	private ArrayList<String> KmlList, DirList;
 
 	// ============================================================ onCreate ING
 	@Override
@@ -39,6 +44,8 @@ public class ListSdCard extends Activity {
 		lv = (ListView) findViewById(R.id.lv_list_sd_card);
 
 		folderList = new ArrayList<String>();
+		KmlList = new ArrayList<String>();
+		DirList = new ArrayList<String>();
 
 		// TODO 強化進入ExternalStorageDirectory的問題判斷(androdi developer)
 		String root_sd = Environment.getExternalStorageDirectory().toString();
@@ -50,7 +57,7 @@ public class ListSdCard extends Activity {
 		file = new File(root_sd);
 
 		if (file.exists() && file.canRead()) {
-			getDirAndKml(file, lv);
+			getKmlAndDir(file, lv);
 
 			// 點擊folder進入下一層
 			lv.setOnItemClickListener(new OnItemClickListener() {
@@ -60,10 +67,11 @@ public class ListSdCard extends Activity {
 					setPageUp(position);
 					// 取得路徑，轉為file
 					File temp_file = new File(file, folderList.get(position));
+
 					// 如果是folder，就在做List
 					if (temp_file.isDirectory()) {
 						file = new File(file, folderList.get(position));
-						getDirAndKml(file, lv);
+						getKmlAndDir(file, lv);
 					}
 				}
 			});// end of setOnItemClickListener
@@ -89,10 +97,10 @@ public class ListSdCard extends Activity {
 				startActivity(new Intent(ListSdCard.this, MainActivity.class));
 				break pageup;
 			}
-			// 如果
+			// 如果到達emulate的進入點，就直接回到mainActivity
 			String pageUp = file.getParent().toString();
 			file = new File(pageUp);
-			getDirAndKml(file, lv);
+			getKmlAndDir(file, lv);
 		}
 	}// end of setPageUp
 
@@ -113,34 +121,74 @@ public class ListSdCard extends Activity {
 	 *            (folder)
 	 * @param listView
 	 */
-	private void getDirAndKml(File directory, ListView listView) {
-		
-		folderList.clear();
-		
-		//TODO 將KML FILE放到最前面，其餘資料夾做字母排序
+	private void getKmlAndDir(File directory, ListView listView) {
+
+		clearAllList();
 		
 		// 插入BACK TO UPPER FOLDER到LIST的第一個欄位
 		folderList.add(0, "page up.../");
 
 		File dirArray[] = directory.listFiles();
+
 		for (File f : dirArray) {
-			// 移除.開頭的檔案(參考ES File Express做處理)
-			if (!f.getName().startsWith(".")) {
+			String fileName = f.getName();
+			if (!fileName.startsWith(".")) {
 				if (f.isDirectory()) {
 					// StringBulider用來串接字串可以加快效率
 					// 但如果是單一statement就免了
-					folderList.add(f.getName() + "/");
+					DirList.add(fileName + "/");
+				} else if (fileName.endsWith(".kml")) {
+					KmlList.add(fileName);
 				} else {
-					// 只找kml檔案
-					if (f.getName().endsWith(".kml")) {
-						folderList.add(f.getName());
-					}
+					DirList.add(fileName);
 				}
-			}// end of if
+			}
 		}// end of for
+		
+		sortAndAddToList(KmlList);
+		sortAndAddToList(DirList);
+
+		// for (File f : dirArray) {
+		// // 移除.開頭的檔案(參考ES File Express做處理)
+		// if (!f.getName().startsWith(".")) {
+		// if (f.isDirectory()) {
+		// // StringBulider用來串接字串可以加快效率
+		// // 但如果是單一statement就免了
+		// folderList.add(f.getName() + "/");
+		// } else {
+		// // 只找kml檔案
+		// if (f.getName().endsWith(".kml")) {
+		// folderList.add(f.getName());
+		// }
+		// }
+		// }// end of if
+		// }// end of for
+
 		listView.setAdapter(new ArrayAdapter<String>(ListSdCard.this,
 				android.R.layout.simple_list_item_1, folderList));
 	}// end of getAllFilesOfDir
+
+	/**
+	 * clear folderList, DirList, KmlList
+	 */
+	private void clearAllList(){
+		folderList.clear();
+		DirList.clear();
+		KmlList.clear();
+		
+	}// end of tempListClear
+	
+	/**
+	 * sort string by A to Z 
+	 * @param arrayList (String)
+	 */
+	private void sortAndAddToList(ArrayList<String> arrayList) {
+		Collections.sort(arrayList);
+		// 如果用folderList.addAll(temp_kml)就無法點擊顯示
+		for (String s : arrayList) {
+			folderList.add(s);
+		}
+	}// end of sortAndAddToList
 
 	// ============================================================ MethodED
 
