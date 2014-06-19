@@ -10,6 +10,8 @@
     <string name="layers_manage">Manage Layers</string>
     <string name="layers_list">List Layers</string>
     <string name="list_sd_card">Add KML file to Map:</string>
+    <string name="duplicate_name">duplicate name</string>
+    <string name="not_a_correct_format">not a correct format</string>
     
     <string-array name="google_map">
         <item >Google Map- None</item>

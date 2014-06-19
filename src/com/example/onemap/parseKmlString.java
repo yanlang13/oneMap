@@ -19,34 +19,34 @@ public class parseKmlString {
 	public parseKmlString(String kmlString) {
 		// github下載的JSONObject
 		jsonObject = XML.toJSONObject(kmlString);
+
+		if (hasDocument()) {
+			document = jsonObject.getJSONObject("kml")
+					.getJSONObject("Document");
+		}
 	}
+	
+	/**
+	 * 檢查kml file kml-Document-Style & Folder
+	 * @return true = KML(my format) ; false = not;
+	 */
+	public boolean checkKmlFormat() {
+		if (jsonObject.has("kml")) {
+			if (jsonObject.getJSONObject("kml").has("Document")) {
+				if (document.has("Style") && document.has("Folder")) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}// end of hasStyleAndFolder
 
 	/**
 	 * @return true = KML ; false = not;
 	 */
 	public boolean hasDocument() {
-		if(jsonObject.has("kml")){
-			if(jsonObject.getJSONObject("kml").has("Document")) {
-				document = jsonObject.getJSONObject("kml")
-						.getJSONObject("Document");
-				return true;
-			}
-		}
-		return false;
-	}// end of hasDocument
-
-	public boolean hasStyle() {
-		if (hasDocument()) {
-			if (document.has("Style")) {
-				return true;
-			}
-		}
-		return false;
-	}// end of hasStyle
-
-	public boolean hasFolder() {
-		if (hasDocument()) {
-			if (document.has("Folder")) {
+		if (jsonObject.has("kml")) {
+			if (jsonObject.getJSONObject("kml").has("Document")) {
 				return true;
 			}
 		}

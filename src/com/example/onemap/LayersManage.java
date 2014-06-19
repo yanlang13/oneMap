@@ -52,8 +52,9 @@ public class LayersManage extends Activity {
 
 		// 下拉前的呈現方式
 		setSpinnerInfo();
-
-		// getKML();
+		
+		//TODO add layers to map (button)
+		//TODO remove layers from map (button)
 
 	}// end of onCreate
 
@@ -122,6 +123,12 @@ public class LayersManage extends Activity {
 		Toast.makeText(LayersManage.this, "export db to SD card",
 				Toast.LENGTH_SHORT).show();
 	}// end of exportDatabase
+	
+	public void deleteDatabase(View view){
+		LayersManage.this.deleteDatabase("oneMaps.db");
+		Toast.makeText(LayersManage.this, "delete database",
+				Toast.LENGTH_SHORT).show();
+	}
 
 	// ============================================================ onCreated
 

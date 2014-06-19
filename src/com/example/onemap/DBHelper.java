@@ -81,7 +81,7 @@ public class DBHelper extends SQLiteOpenHelper {
 			duplicate = false;
 		}else{
 			duplicate = true;
-			Toast.makeText(context, "duplicate kml file", Toast.LENGTH_SHORT).show();
+			Toast.makeText(context, R.string.duplicate_name, Toast.LENGTH_SHORT).show();
 		}
 	}// end of addLayer
 

@@ -78,8 +78,10 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	private DefaultSettings ds; // 存取各種基本設定
 
 	private DBHelper dbHelper;
-	private HashMap<String, String> showLayers;
-	private HashMap<String, PolygonOptions> showPolygons;
+	private HashMap<String, String> showLayers; // get from database 
+	private HashMap<String, PolygonOptions> polyStyle; // color and width
+	private HashMap<String, PolygonOptions> pos; // ready to display(add LatLng)
+	private HashMap<String, PolygonOptions> polyDesc; // desc
 
 	// ====================================================================Declared
 
@@ -93,6 +95,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		showLayers = new HashMap<String, String>();
 
 		setLeftDrawer();
+		
 	}// end of onCreate
 
 	/**
@@ -214,12 +217,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 						map, THE_LAST_CP);
 				setBaseMap(map, position);
 
-				// TODO 清空showLayer，之後再新增判斷方式
-				if (!showLayers.isEmpty()) {
-					Log.d("mdb", "clear showLayers");
-					showLayers.clear();
-				}
-
 				// 抓database裡面的layers
 				List<Layer> layers = dbHelper.getAllLayer();
 
@@ -289,12 +286,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	private void kmlToMap(String kmlString, GoogleMap map) {
 		// TODO parsing KML to PolygonOptions []
 		parseKmlString pks = new parseKmlString(kmlString);
-
-		//格式判斷必做，因為它創造出檔案。
-		if (!pks.hasDocument()) {
-			Log.d("mdb", "not a correct kml format ");
-			return;
-		}
+		
+		
 		
 		
 

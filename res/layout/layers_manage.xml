@@ -33,23 +33,72 @@
             android:layout_marginLeft="20dp" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/bt_manage_kmltotxt"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:onClick="parseKMLtoText"
-        android:text="KML to Txt"
-        android:textSize="@dimen/text_size_large" />
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/white"
+        android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/bt_export_database"
-        android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/tv_manage_layer_on_map"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:text="Layers on Map:"
+            android:textColor="@color/Black"
+            android:textSize="@dimen/text_size_large" />
+
+        <TextView
+            android:id="@+id/tv_manage_layers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="20dp"
+            android:text="Layers.."
+            android:textSize="@dimen/text_size_large" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:onClick="exportDatabase"
-        android:text="Export DB"
-        android:textSize="@dimen/text_size_large" />
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/bt_manage_kmltotxt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="parseKMLtoText"
+                android:text="KML to Txt"
+                android:textSize="@dimen/text_size_large" />
+
+            <Button
+                android:id="@+id/bt_export_database"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="exportDatabase"
+                android:text="Export DB"
+                android:textSize="@dimen/text_size_large" />
+
+            <Button
+                 android:id="@+id/bt_delete_database"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="deleteDatabase"
+                android:text="delete DB"
+                android:textSize="@dimen/text_size_large" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tv_manage_GeoJSON"

@@ -17,6 +17,10 @@ public class LayersList extends Activity {
 		setContentView(R.layout.layers_of_list);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
+			
+		
+		//TODO SHOW LAYER INFO: NAME, DESC, UPLOAD STATE
+		//TODO LONG CLICK: EDIT, DELETE, AND UPLOAD TO PARSE
 		
 	}// end of onCreate
 	

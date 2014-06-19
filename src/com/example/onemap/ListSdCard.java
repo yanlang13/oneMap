@@ -189,27 +189,25 @@ public class ListSdCard extends Activity {
 				// 取出kml file的檔案名稱 (.kml不要)
 				String title = fileName.substring(0, fileName.length() - 4);
 				String kmlString = OtherTools.fileToString(tempFile);
-				
-				//如果不是kML FILE就不用新增到資料庫了
+
+				// 如果不是kML FILE就不用新增到資料庫了
 				parseKmlString pks = new parseKmlString(kmlString);
-				if (pks.hasDocument()) {
+				if (pks.checkKmlFormat()) {
 					Layer layer = new Layer();
 					layer.setTitle(title);
 					layer.setKmlString(kmlString);
 					layer.setDisplay("true");
 					dbHelper.addLayer(layer);
-					
+
 					// 沒有重複，就跳回mainActivity
 					if (!dbHelper.getDuplicate()) {
 						startActivity(new Intent(getApplicationContext(),
 								MainActivity.class));
-					} else {
-						Toast.makeText(ListSdCard.this, "duplicate KML",
-								Toast.LENGTH_SHORT).show();
 					}
 				} else {
-					Toast.makeText(ListSdCard.this, "not a correct format",
-							Toast.LENGTH_SHORT).show();
+					Toast.makeText(ListSdCard.this,
+							R.string.not_a_correct_format, Toast.LENGTH_SHORT)
+							.show();
 				}
 				Log.d("mdb", "stroage kml file to database");
 			}// end of if
