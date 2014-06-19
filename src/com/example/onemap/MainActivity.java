@@ -5,6 +5,12 @@ import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NONE;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
 import com.example.onemap.MapTools;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
@@ -71,8 +77,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 	private DefaultSettings ds; // 存取各種基本設定
 
-	// 測試用，input的polygon file name
-	private String INPUT_KML_FILE = "twopolygon.kml";
+	private DBHelper dbHelper;
+	private HashMap<String, String> showLayers;
+	private HashMap<String, PolygonOptions> showPolygons;
 
 	// ====================================================================Declared
 
@@ -82,6 +89,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		ds = new DefaultSettings(MainActivity.this);
 		setContentView(R.layout.single_maps);
 		progressDialog = new ProgressDialog(this);
+		dbHelper = new DBHelper(this);
+		showLayers = new HashMap<String, String>();
+
 		setLeftDrawer();
 	}// end of onCreate
 
@@ -204,9 +214,41 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 						map, THE_LAST_CP);
 				setBaseMap(map, position);
 
+				// TODO 清空showLayer，之後再新增判斷方式
+				if (!showLayers.isEmpty()) {
+					Log.d("mdb", "clear showLayers");
+					showLayers.clear();
+				}
+
+				// 抓database裡面的layers
+				List<Layer> layers = dbHelper.getAllLayer();
+
+				for (Layer l : layers) {
+					// TODO 判斷是否需要新增到hashMap
+					// 要display的圖才放到showLayers
+					if (l.getDisplay().equals("true")) {
+						showLayers.put(l.getTitle(), l.getKmlString());
+					}
+				}// end of for
+
 				// TODO 開啟DATABASE把DISPLAY TRUE的KML放入地圖
-			}
-		}
+				if (!showLayers.isEmpty()) {
+					// keySet()是傳回key的set，iterator則用來讀取collections
+					Iterator<String> iterator = showLayers.keySet().iterator();
+					while (iterator.hasNext()) {
+						String keyTitle = (String) iterator.next();
+						String kmlString = showLayers.get(keyTitle);
+						// TODO 判斷那些要重新製作polygonOptions，那些不用
+						kmlToMap(kmlString, map);
+					}// end of if
+				}
+			} else {
+				Toast.makeText(getApplication(),
+						"check display layers on" + R.string.layers_manage,
+						Toast.LENGTH_SHORT).show();
+			}// end of if
+		}// end of if
+
 		map.setMyLocationEnabled(true);
 		map.setOnMyLocationButtonClickListener(this);
 	}
@@ -237,6 +279,26 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			Log.d("mdg", "MainActivity class" + "googleMap Error");
 		}
 	}// end of setMapLayoutType
+
+	/**
+	 * parsing kmlString to polygonOptions and add polygonOptions to map.
+	 * 
+	 * @param kmlString
+	 * @param map
+	 */
+	private void kmlToMap(String kmlString, GoogleMap map) {
+		// TODO parsing KML to PolygonOptions []
+		parseKmlString pks = new parseKmlString(kmlString);
+
+		//格式判斷必做，因為它創造出檔案。
+		if (!pks.hasDocument()) {
+			Log.d("mdb", "not a correct kml format ");
+			return;
+		}
+		
+		
+
+	}// end of kmlToMap
 
 	// ====================================================================onResumed
 
@@ -343,56 +405,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			}
 		}// end of onPostExecute
 	}// end of GetAddressTask
-
-	/**
-	 * parsing kml file and display in map
-	 * 
-	 * @PARM context
-	 * @PARM kml file
-	 */
-	private class AddInputTask extends TaskAddInput {
-		@Override
-		protected void onPreExecute() {
-			progressDialog.show();
-		}
-
-		@Override
-		protected void onPostExecute(Object object) {
-			if (object == null) {
-				Toast.makeText(MainActivity.this, "check your input source",
-						Toast.LENGTH_LONG).show();
-			} else {
-				PolygonOptions po = (PolygonOptions) object;
-
-				// TODO 不要clear
-				map.clear();
-				map.addPolygon(po);  
-
-				final PolygonOptions po1 = po;
-				// TODO 點擊POLYGON時，顯示INFOWINDOW
-				map.setOnMapLongClickListener(new OnMapLongClickListener() {
-					@Override
-					public void onMapLongClick(LatLng point) {
-						if (mapTools.containsInPolygon(point, po1)) {
-							Toast.makeText(MainActivity.this,
-									"point in polygon", Toast.LENGTH_SHORT)
-									.show();
-							map.setInfoWindowAdapter(new AdapterPolygonInfoWindow(
-									getLayoutInflater()));
-							MarkerOptions mo = new MarkerOptions();
-							mo.position(point);
-							map.addMarker(mo).showInfoWindow();
-						} else {
-							Toast.makeText(MainActivity.this,
-									"point isn't in polygon",
-									Toast.LENGTH_SHORT).show();
-						}
-					}
-				});
-			}
-			progressDialog.dismiss();
-		}
-	}// end of AddInputTask
 
 	// ====================================================================Classed
 

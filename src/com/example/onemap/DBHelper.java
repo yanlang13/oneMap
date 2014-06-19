@@ -38,6 +38,9 @@ public class DBHelper extends SQLiteOpenHelper {
 
 
 	private Context context;
+	
+	//用在確認是否重複，ListSdCard使用
+	private boolean duplicate = false;
 
 	// =================================================================
 
@@ -75,7 +78,9 @@ public class DBHelper extends SQLiteOpenHelper {
 			db.insert(TABLE_LAYERS, null, values);
 			// 4. close
 			db.close();
+			duplicate = false;
 		}else{
+			duplicate = true;
 			Toast.makeText(context, "duplicate kml file", Toast.LENGTH_SHORT).show();
 		}
 	}// end of addLayer
@@ -238,6 +243,12 @@ public class DBHelper extends SQLiteOpenHelper {
 		// return count
 		return count;
 	}// end of getLayerCount
-
+	
+	/**
+	 * @return true if duplicate title
+	 */
+	public boolean getDuplicate(){
+		return duplicate;
+	}// end of getDuplicate
 	// ==============================================================DBControled
 }

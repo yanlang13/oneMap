@@ -6,7 +6,6 @@ import java.util.List;
 import com.google.android.gms.maps.model.LatLng;
 
 import android.graphics.Color;
-import android.text.GetChars;
 import android.util.Log;
 
 /**
@@ -14,38 +13,40 @@ import android.util.Log;
  * 
  */
 public class parseKmlString {
-	private String kmlString; // constructor
-	private JSONObject jsonKML;
-	private JSONObject kml; // 使用Kml開始取得檔案
+	private JSONObject jsonObject;
+	private JSONObject document; // 使用document開始取得檔案
 
 	public parseKmlString(String kmlString) {
-		this.kmlString = kmlString;
 		// github下載的JSONObject
-		jsonKML = XML.toJSONObject(kmlString);
-		// 取得kml中所需的資料
+		jsonObject = XML.toJSONObject(kmlString);
 	}
 
 	/**
-	 * @return true = kml ; false = not;
+	 * @return true = KML ; false = not;
 	 */
-	public Boolean isKML() {
-		if (jsonKML.has("kml")) {
-			kml = jsonKML.getJSONObject("kml");
-			return true;
-		}
-		return false;
-	}// isKML()
-
 	public boolean hasDocument() {
-		if (kml.has("Document")) {
-			return true;
+		if(jsonObject.has("kml")){
+			if(jsonObject.getJSONObject("kml").has("Document")) {
+				document = jsonObject.getJSONObject("kml")
+						.getJSONObject("Document");
+				return true;
+			}
 		}
 		return false;
 	}// end of hasDocument
 
+	public boolean hasStyle() {
+		if (hasDocument()) {
+			if (document.has("Style")) {
+				return true;
+			}
+		}
+		return false;
+	}// end of hasStyle
+
 	public boolean hasFolder() {
 		if (hasDocument()) {
-			if (kml.getJSONObject("Document").has("Folder")) {
+			if (document.has("Folder")) {
 				return true;
 			}
 		}
@@ -60,8 +61,8 @@ public class parseKmlString {
 	public ArrayList<LatLng> getCoordinates() {
 		if (hasDocument()) {
 			try {
-				String coordinates = kml.getJSONObject("Document")
-						.getJSONObject("Placemark").getJSONObject("Polygon")
+				String coordinates = document.getJSONObject("Placemark")
+						.getJSONObject("Polygon")
 						.getJSONObject("outerBoundaryIs")
 						.getJSONObject("LinearRing").getString("coordinates");
 				// Log.d("mdb", "getCoordinates: " + coordinates);
@@ -106,8 +107,8 @@ public class parseKmlString {
 	public String getDescription() {
 		if (hasDocument()) {
 			try {
-				String description = kml.getJSONObject("Document")
-						.getJSONObject("Placemark").getString("description");
+				String description = document.getJSONObject("Placemark")
+						.getString("description");
 				return description;
 			} catch (JSONException e) {
 				Log.d("mdb", "parserkmlString class," + e.toString());
@@ -125,11 +126,11 @@ public class parseKmlString {
 	 * @return int ARGB color
 	 */
 	public String[] getDrawId() {
-		if (hasDocument()){
-			kml.getJSONObject("Document").length();
-			kml.getJSONObject("Document").getJSONArray("id");
+		if (hasDocument()) {
+			document.length();
+			document.getJSONArray("id");
 			return null;
-		}else {
+		} else {
 			return null;
 		}
 
@@ -143,8 +144,8 @@ public class parseKmlString {
 	public int getPolyColor() {
 		if (hasDocument()) {
 			try {
-				JSONObject style = kml.getJSONObject("Document")
-						.getJSONArray("Style").getJSONObject(1);
+				JSONObject style = document.getJSONArray("Style")
+						.getJSONObject(1);
 				String abgr = style.getJSONObject("PolyStyle").getString(
 						"color");
 				return kmlColorToARGB(abgr);
@@ -171,8 +172,8 @@ public class parseKmlString {
 	public int getLineColor() {
 		if (hasDocument()) {
 			try {
-				JSONObject style = kml.getJSONObject("Document")
-						.getJSONArray("Style").getJSONObject(1);
+				JSONObject style = document.getJSONArray("Style")
+						.getJSONObject(1);
 				String abgr = style.getJSONObject("LineStyle").getString(
 						"color");
 				return kmlColorToARGB(abgr);
@@ -199,8 +200,8 @@ public class parseKmlString {
 	public float getLineWidth() {
 		if (hasDocument()) {
 			try {
-				JSONObject style = kml.getJSONObject("Document")
-						.getJSONArray("Style").getJSONObject(1);
+				JSONObject style = document.getJSONArray("Style")
+						.getJSONObject(1);
 				int width = style.getJSONObject("LineStyle").getInt("width");
 				return Float.valueOf(width);
 

@@ -2,13 +2,8 @@ package com.example.onemap;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-
 import com.example.onemap.R;
-
-import android.R.string;
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
@@ -19,7 +14,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.LayoutInflater.Filter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -41,7 +35,6 @@ public class ListSdCard extends Activity {
 	// ============================================================ onCreate ING
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		Log.d("mdb", "onCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.list_sd_card);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -58,48 +51,14 @@ public class ListSdCard extends Activity {
 		String root_sd = Environment.getExternalStorageDirectory().toString();
 
 		// TODO isExternalStorageEmulated ()，來判斷是否是虛擬的sd Card
-
 		// folder = new File(root_sd + "/external_sd");
 
 		file = new File(root_sd);
 
 		if (file.exists() && file.canRead()) {
 			getKmlAndDir(file, lv);
-
 			// 點擊folder進入下一層
-			lv.setOnItemClickListener(new OnItemClickListener() {
-				@Override
-				public void onItemClick(AdapterView<?> parent, View view,
-						int position, long id) {
-					setPageUp(position);
-					// 取得路徑，轉為file
-					File tempFile = new File(file, folderList.get(position));
-
-					// 如果是folder，就在做List
-					if (tempFile.isDirectory()) {
-						file = new File(file, folderList.get(position));
-						getKmlAndDir(file, lv);
-					}
-					
-					// TODO 如果是KML就要載入database (display
-					// true)，NAME照檔案名稱，後面空白unedited。
-					String fileName = tempFile.getName();
-					if (fileName.endsWith(".kml")) {
-						// 取出kml file的檔案名稱 (.kml不要)
-						String title = fileName.substring(0,
-								fileName.length() - 4);
-						String kmlString = OtherTools.fileToString(tempFile);
-						Layer layer = new Layer();
-						layer.setTitle(title);
-						layer.setKmlString(kmlString);
-						layer.setDisplay("true");
-						dbHelper.addLayer(layer);
-						Log.d("mdb", "stroage kml file to database");
-					}
-
-				}
-			});// end of setOnItemClickListener
-
+			lv.setOnItemClickListener(new MyOnItemClickListener());
 		} else {
 			Toast.makeText(ListSdCard.this, "error to access sd card",
 					Toast.LENGTH_LONG).show();
@@ -201,6 +160,63 @@ public class ListSdCard extends Activity {
 	}// end of sortAndAddToList
 
 	// ============================================================ MethodED
+
+	// ============================================================ class ING
+
+	/**
+	 * listView item click
+	 * 
+	 * @author acer
+	 * 
+	 */
+	class MyOnItemClickListener implements OnItemClickListener {
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position,
+				long id) {
+			setPageUp(position);
+			// 取得路徑，轉為file
+			File tempFile = new File(file, folderList.get(position));
+
+			// 如果是folder，就在做List
+			if (tempFile.isDirectory()) {
+				file = new File(file, folderList.get(position));
+				getKmlAndDir(file, lv);
+			}
+
+			// 如果是點擊了kml就存檔，然後回到mainActivity
+			String fileName = tempFile.getName();
+			if (fileName.endsWith(".kml")) {
+				// 取出kml file的檔案名稱 (.kml不要)
+				String title = fileName.substring(0, fileName.length() - 4);
+				String kmlString = OtherTools.fileToString(tempFile);
+				
+				//如果不是kML FILE就不用新增到資料庫了
+				parseKmlString pks = new parseKmlString(kmlString);
+				if (pks.hasDocument()) {
+					Layer layer = new Layer();
+					layer.setTitle(title);
+					layer.setKmlString(kmlString);
+					layer.setDisplay("true");
+					dbHelper.addLayer(layer);
+					
+					// 沒有重複，就跳回mainActivity
+					if (!dbHelper.getDuplicate()) {
+						startActivity(new Intent(getApplicationContext(),
+								MainActivity.class));
+					} else {
+						Toast.makeText(ListSdCard.this, "duplicate KML",
+								Toast.LENGTH_SHORT).show();
+					}
+				} else {
+					Toast.makeText(ListSdCard.this, "not a correct format",
+							Toast.LENGTH_SHORT).show();
+				}
+				Log.d("mdb", "stroage kml file to database");
+			}// end of if
+		}// end of onItemClick
+	}// end of MyOnItemClickListener
+
+	// ============================================================ class ED
 
 	// ============================================================ Menu
 	@Override
