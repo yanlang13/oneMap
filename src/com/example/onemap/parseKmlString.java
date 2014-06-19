@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import com.google.android.gms.maps.model.LatLng;
 
+import android.R.integer;
 import android.graphics.Color;
 import android.util.Log;
 
@@ -25,9 +26,10 @@ public class parseKmlString {
 					.getJSONObject("Document");
 		}
 	}
-	
+
 	/**
 	 * 檢查kml file kml-Document-Style & Folder
+	 * 
 	 * @return true = KML(my format) ; false = not;
 	 */
 	public boolean checkKmlFormat() {
@@ -137,89 +139,62 @@ public class parseKmlString {
 	}// end of getDrawId
 
 	/**
-	 * get data from kml PoltStyle
-	 * 
-	 * @return int ARGB color
+	 * @param index
+	 * @return id: kml-Document-Style-id
 	 */
-	public int getPolyColor() {
-		if (hasDocument()) {
-			try {
-				JSONObject style = document.getJSONArray("Style")
-						.getJSONObject(1);
-				String abgr = style.getJSONObject("PolyStyle").getString(
-						"color");
-				return kmlColorToARGB(abgr);
-
-			} catch (JSONException e) {
-				Log.d("mdb", "parserkmlString class," + e.toString());
-				return (Integer) null;
-			} catch (IllegalArgumentException e) { // the colorString can't be
-													// parsed
-				Log.d("mdb", "parserkmlString class," + e.toString());
-				return (Integer) null;
-			}
-		} else {
-			// TODO 如果沒有DOCUMENT的get
-			return (Integer) null;
-		}
-	}// end of getpolyColor()
+	public String getPolyStyleId(int index) {
+		return document.getJSONArray("Style").getJSONObject(index)
+				.getString("id");
+	}// end of getPolyStyleId
 
 	/**
-	 * get data from kml LineStyle
-	 * 
-	 * @return int color
+	 * @param index
+	 * @return ARGB color
 	 */
-	public int getLineColor() {
-		if (hasDocument()) {
-			try {
-				JSONObject style = document.getJSONArray("Style")
-						.getJSONObject(1);
-				String abgr = style.getJSONObject("LineStyle").getString(
-						"color");
-				return kmlColorToARGB(abgr);
-
-			} catch (JSONException e) {
-				Log.d("mdb", "parserkmlString class," + e.toString());
-				return (Integer) null;
-			} catch (IllegalArgumentException e) { // the colorString can't be
-													// parsed
-				Log.d("mdb", "parserkmlString class," + e.toString());
-				return (Integer) null;
-			}
-		} else {
-			// TODO 如果沒有DOCUMENT的get
-			return (Integer) null;
-		}
-	}// end of getLineColor()
+	public int getPolyColor(int index) {
+		JSONObject polyStyle = document.getJSONArray("Style")
+				.getJSONObject(index).getJSONObject("PolyStyle");
+		String abgr = polyStyle.getString("color");
+		return kmlColorToARGB(abgr);
+	}// end of getPoltColor
 
 	/**
-	 * get data from kml LineStyle
-	 * 
-	 * @return float width
+	 * @param index
+	 * @return ARGB color
 	 */
-	public float getLineWidth() {
-		if (hasDocument()) {
-			try {
-				JSONObject style = document.getJSONArray("Style")
-						.getJSONObject(1);
-				int width = style.getJSONObject("LineStyle").getInt("width");
-				return Float.valueOf(width);
+	public int getLineColor(int index) {
+		JSONObject LineStyle = document.getJSONArray("Style")
+				.getJSONObject(index).getJSONObject("LineStyle");
+		String abgr = LineStyle.getString("color");
+		return kmlColorToARGB(abgr);
+	}// end of getPoltColor
 
-			} catch (JSONException e) {
-				Log.d("mdb", "parserkmlString class," + e.toString());
-				return (Float) null;
-			} catch (IllegalArgumentException e) { // the colorString can't be
-													// parsed
-				Log.d("mdb", "parserkmlString class," + e.toString());
-				return (Float) null;
-			}
-		} else {
-			// TODO 如果沒有DOCUMENT的get
-			return (Integer) null;
-		}
-	}// end of getLineColor()
+	/**
+	 * 
+	 * @param index
+	 * @return width
+	 */
+	public float getLineWidth(int index) {
+		JSONObject LineStyle = document.getJSONArray("Style")
+				.getJSONObject(index).getJSONObject("LineStyle");
+		int width = LineStyle.getInt("width");
+		return Float.valueOf(width);
+	}// end of getLineWidth
+
+	/**
+	 * length從1開始算
+	 */
+	public int getStyleLength() {
+		return document.getJSONArray("Style").length();
+	}// end of getJsonObejctLength
 
 	// =============================================================priavteMethodsing
+	/**
+	 * translate ABGR to ARGB
+	 * 
+	 * @param abgr
+	 * @return
+	 */
 	private int kmlColorToARGB(String abgr) {
 		String stringAlpha = abgr.substring(0, 2);
 		String strinfBlue = abgr.substring(2, 4);
@@ -230,8 +205,8 @@ public class parseKmlString {
 		int argb = Color.parseColor("#" + stringAlpha + strinfRed + stringGreen
 				+ strinfBlue);
 		return argb;
-	}
-	// =============================================================priavteMethodsed
+	}// end of kmlColorToARGB
+		// =============================================================priavteMethodsed
 
 }// end of parseKmlString
 

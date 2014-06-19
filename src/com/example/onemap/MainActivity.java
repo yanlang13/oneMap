@@ -27,6 +27,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
+
+import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -78,7 +80,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	private DefaultSettings ds; // 存取各種基本設定
 
 	private DBHelper dbHelper;
-	private HashMap<String, String> showLayers; // get from database 
+	private HashMap<String, String> showLayers; // get from database
 	private HashMap<String, PolygonOptions> polyStyle; // color and width
 	private HashMap<String, PolygonOptions> pos; // ready to display(add LatLng)
 	private HashMap<String, PolygonOptions> polyDesc; // desc
@@ -93,9 +95,12 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		progressDialog = new ProgressDialog(this);
 		dbHelper = new DBHelper(this);
 		showLayers = new HashMap<String, String>();
+		polyStyle = new HashMap<String, PolygonOptions>();
+		pos = new HashMap<String, PolygonOptions>();
+		polyDesc = new HashMap<String, PolygonOptions>();
 
 		setLeftDrawer();
-		
+
 	}// end of onCreate
 
 	/**
@@ -286,11 +291,29 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	private void kmlToMap(String kmlString, GoogleMap map) {
 		// TODO parsing KML to PolygonOptions []
 		parseKmlString pks = new parseKmlString(kmlString);
-		
-		
-		
-		
 
+		// 用for loop，來處理所有的polyStyle
+		for (int index = 0; index < pks.getStyleLength(); index++) {
+			String key = pks.getPolyStyleId(index);
+			// po儲存color and width
+			PolygonOptions po = new PolygonOptions();
+			po.fillColor(pks.getPolyColor(index));
+			po.strokeColor(pks.getLineColor(index));
+			po.strokeWidth(pks.getLineWidth(index));
+			polyStyle.put(key, po);
+		}
+		
+		  if (!polyStyle.isEmpty()) {
+              // keySet()是傳回key的set，iterator則用來讀取collections
+             Iterator<String> iterator = polyStyle.keySet().iterator();
+              while (iterator.hasNext()) {
+                  String key = (String) iterator.next();
+                  Log.d("mdb", ""+polyStyle.get(key));
+             } // end of if
+        }
+
+		
+		
 	}// end of kmlToMap
 
 	// ====================================================================onResumed
