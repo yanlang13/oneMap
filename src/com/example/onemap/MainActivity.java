@@ -82,7 +82,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	private DBHelper dbHelper;
 	private HashMap<String, String> showLayers; // get from database
 	private HashMap<String, PolygonOptions> polyStyle; // color and width
-	private HashMap<String, PolygonOptions> pos; // ready to display(add LatLng)
+	private HashMap<String, PolygonOptions> polyDisplay; // ready to display(add
+															// LatLng)
 	private HashMap<String, PolygonOptions> polyDesc; // desc
 
 	// ====================================================================Declared
@@ -96,7 +97,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		dbHelper = new DBHelper(this);
 		showLayers = new HashMap<String, String>();
 		polyStyle = new HashMap<String, PolygonOptions>();
-		pos = new HashMap<String, PolygonOptions>();
+		polyDisplay = new HashMap<String, PolygonOptions>();
 		polyDesc = new HashMap<String, PolygonOptions>();
 
 		setLeftDrawer();
@@ -290,7 +291,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	 */
 	private void kmlToMap(String kmlString, GoogleMap map) {
 		// TODO parsing KML to PolygonOptions []
-		parseKmlString pks = new parseKmlString(kmlString);
+		ParseKmlString pks = new ParseKmlString(kmlString);
 
 		// 用for loop，來處理所有的polyStyle
 		for (int index = 0; index < pks.getStyleLength(); index++) {
@@ -302,18 +303,28 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			po.strokeWidth(pks.getLineWidth(index));
 			polyStyle.put(key, po);
 		}
-		
-		  if (!polyStyle.isEmpty()) {
-              // keySet()是傳回key的set，iterator則用來讀取collections
-             Iterator<String> iterator = polyStyle.keySet().iterator();
-              while (iterator.hasNext()) {
-                  String key = (String) iterator.next();
-                  Log.d("mdb", ""+polyStyle.get(key));
-             } // end of if
-        }
 
-		
-		
+		// 確認polyStyle有東西再動作
+		if (!polyStyle.isEmpty()) {
+//			for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
+			int index = 0;
+			PolygonOptions po = new PolygonOptions();
+				po = polyStyle.get(pks.getStyleUrl(index));
+				
+				po.addAll(pks.getCoordinates(index));
+				
+				String key = pks.getPlaceMarkName(index);
+
+				// polyDisplay.put(key, po);
+//			}
+		} // end of if
+
+		// Iterator<String> iterator = polyStyle.keySet().iterator();
+		//
+		// while (iterator.hasNext()) {
+		// String key = (String) iterator.next();
+		// map.addPolygon(polyDisplay.get(key));
+		// }
 	}// end of kmlToMap
 
 	// ====================================================================onResumed

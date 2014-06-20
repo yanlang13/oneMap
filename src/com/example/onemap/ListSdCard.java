@@ -191,7 +191,7 @@ public class ListSdCard extends Activity {
 				String kmlString = OtherTools.fileToString(tempFile);
 
 				// 如果不是kML FILE就不用新增到資料庫了
-				parseKmlString pks = new parseKmlString(kmlString);
+				ParseKmlString pks = new ParseKmlString(kmlString);
 				if (pks.checkKmlFormat()) {
 					Layer layer = new Layer();
 					layer.setTitle(title);
