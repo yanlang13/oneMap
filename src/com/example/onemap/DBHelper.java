@@ -121,40 +121,6 @@ public class DBHelper extends SQLiteOpenHelper {
 		return layer;
 	}
 
-	public Layer getLayer(int id) {
-		// 1. get reference to readable DB
-		SQLiteDatabase db = this.getReadableDatabase();
-
-		Layer layer = new Layer();
-		// 2. build query
-		try {
-			Cursor cursor = db.query(TABLE_LAYERS, // a. table
-					COLUMNS, // b. column names
-					FIELD_ID + "=?", // c. selections
-					new String[] { String.valueOf(id) }, // d. selections args
-					null, // e. group by
-					null, // f. having
-					null, // g. order by
-					null); // h. limit
-			// 3. if we got results get the first one
-			if (cursor != null)
-				cursor.moveToFirst();
-			// 4. build book object
-			layer.setId(cursor.getString(0));
-			layer.setTitle(cursor.getString(1));
-			layer.setDesc(cursor.getString(2));
-			layer.setKmlString(cursor.getString(3));
-			layer.setDisplay(cursor.getString(4));
-			// 5. return book
-		} catch (CursorIndexOutOfBoundsException e) {
-			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
-		}
-
-		db.close();
-		return layer;
-
-	}// end of getLayer
-
 	/**
 	 * return List<Layer>
 	 */

@@ -229,7 +229,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 				for (Layer l : layers) {
 					// TODO 判斷是否需要新增到hashMap
 					// 要display的圖才放到showLayers
-					if (l.getDisplay().equals("true")) {
+					if (l.getDisplay().equals("True")) {
 						showLayers.put(l.getTitle(), l.getKmlString());
 					}
 				}// end of for
@@ -242,7 +242,26 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 						String keyTitle = (String) iterator.next();
 						String kmlString = showLayers.get(keyTitle);
 						// TODO 判斷那些要重新製作polygonOptions，那些不用
-						kmlToMap(kmlString, map);
+						Log.d("mdb", "key title: " + keyTitle);
+
+						// TODO try catch 避免無法讀取kml file而造成的MAINACTIVITY開啟錯誤
+						try {
+							kmlToMap(kmlString, map);
+						} catch (NullPointerException e) {
+							Toast.makeText(
+									MainActivity.this,
+									"The " + keyTitle + ".kml can't be parsed.",
+									Toast.LENGTH_LONG).show();
+							Log.d("mdb", e.toString());
+							dbHelper.deleteLayerRow(dbHelper.getLater(keyTitle));
+						} catch (JSONException e) {
+							Toast.makeText(
+									MainActivity.this,
+									"The " + keyTitle + ".kml can't be parsed.",
+									Toast.LENGTH_LONG).show();
+							Log.d("mdb", e.toString());
+							dbHelper.deleteLayerRow(dbHelper.getLater(keyTitle));
+						}
 					}// end of if
 				}
 			} else {
@@ -295,36 +314,42 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		// 用for loop，來處理所有的polyStyle
 		for (int index = 0; index < pks.getStyleLength(); index++) {
-			String key = pks.getPolyStyleId(index);
+			// Log.d("mdb", "index= " + index);
 			// po儲存color and width
 			PolygonOptions po = new PolygonOptions();
+
 			po.fillColor(pks.getPolyColor(index));
 			po.strokeColor(pks.getLineColor(index));
+			// Log.d("mdb", "lineColor filled");
 			po.strokeWidth(pks.getLineWidth(index));
+			// Log.d("mdb", "lineWidth filled");
+
+			String key = pks.getPolyStyleId(index);
+			Log.d("mdb", "key:" + key);
 			polyStyle.put(key, po);
 		}
 
-		// 確認polyStyle有東西再動作
-		if (!polyStyle.isEmpty()) {
-//			for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
-			int index = 0;
-			PolygonOptions po = new PolygonOptions();
-				po = polyStyle.get(pks.getStyleUrl(index));
-				
-				po.addAll(pks.getCoordinates(index));
-				
-				String key = pks.getPlaceMarkName(index);
+		Log.d("mdb", "it's good");
 
-				// polyDisplay.put(key, po);
-//			}
+		// 確認polyStyle有東西再動作，將圖徵與座標結合
+		if (!polyStyle.isEmpty()) {
+			Log.d("mdb", "start polyStyle=====");
+			for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
+				PolygonOptions po = new PolygonOptions();
+				po = polyStyle.get(pks.transToStyleUrl(pks.getStyleUrl(index)));
+				po.addAll(pks.getCoordinates(index));
+				String key = pks.getPlaceMarkName(index);
+				polyDisplay.put(key, po);
+			}
 		} // end of if
 
-		// Iterator<String> iterator = polyStyle.keySet().iterator();
-		//
-		// while (iterator.hasNext()) {
-		// String key = (String) iterator.next();
-		// map.addPolygon(polyDisplay.get(key));
-		// }
+		// 將layers放到地圖上
+		Iterator<String> iterator = polyDisplay.keySet().iterator();
+		while (iterator.hasNext()) {
+			String key = (String) iterator.next();
+			map.addPolygon(polyDisplay.get(key));
+		}
+
 	}// end of kmlToMap
 
 	// ====================================================================onResumed

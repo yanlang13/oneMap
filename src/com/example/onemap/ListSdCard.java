@@ -196,7 +196,7 @@ public class ListSdCard extends Activity {
 					Layer layer = new Layer();
 					layer.setTitle(title);
 					layer.setKmlString(kmlString);
-					layer.setDisplay("true");
+					layer.setDisplay("True");
 					dbHelper.addLayer(layer);
 
 					// 沒有重複，就跳回mainActivity
