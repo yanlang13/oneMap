@@ -234,7 +234,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 					}
 				}// end of for
 
-				// TODO 開啟DATABASE把DISPLAY TRUE的KML放入地圖
+				// 開啟DATABASE把DISPLAY TRUE的KML放入地圖
 				if (!showLayers.isEmpty()) {
 					// keySet()是傳回key的set，iterator則用來讀取collections
 					Iterator<String> iterator = showLayers.keySet().iterator();
@@ -314,18 +314,13 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		// 用for loop，來處理所有的polyStyle
 		for (int index = 0; index < pks.getStyleLength(); index++) {
-			// Log.d("mdb", "index= " + index);
 			// po儲存color and width
 			PolygonOptions po = new PolygonOptions();
 
 			po.fillColor(pks.getPolyColor(index));
 			po.strokeColor(pks.getLineColor(index));
-			// Log.d("mdb", "lineColor filled");
 			po.strokeWidth(pks.getLineWidth(index));
-			// Log.d("mdb", "lineWidth filled");
-
 			String key = pks.getPolyStyleId(index);
-			Log.d("mdb", "key:" + key);
 			polyStyle.put(key, po);
 		}
 

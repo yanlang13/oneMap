@@ -34,7 +34,7 @@ public class LayersManage extends Activity {
 	private DefaultSettings ds;
 
 	// 測試用，input的polygon file name
-	private String INPUT_KML_FILE = "3polygon.kml";
+	private String INPUT_KML_FILE = "水資源局轄區範圍圖.kml";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

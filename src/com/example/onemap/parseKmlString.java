@@ -3,14 +3,7 @@ package com.example.onemap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import com.example.onemap.R.string;
-import com.google.android.gms.internal.br;
 import com.google.android.gms.maps.model.LatLng;
-
-import de.micromata.opengis.kml.v_2_2_0.Lod;
-
-import android.R.integer;
 import android.graphics.Color;
 import android.util.Log;
 
@@ -52,24 +45,13 @@ public class ParseKmlString {
 		jsonObject = XML.toJSONObject(kmlString);
 
 		if (checkKmlFormat()) {
-			document = jsonObject.getJSONObject(KML).getJSONObject(DOCUMENT);
+			// document = jsonObject.getJSONObject(KML).getJSONObject(DOCUMENT);
 		}
 	}// end of parseKmlString
 
 	/**
-	 * @return true = KML ; false = not;
-	 */
-	public boolean hasDocument() {
-		if (jsonObject.has(KML)) {
-			if (jsonObject.getJSONObject(KML).has(DOCUMENT)) {
-				return true;
-			}
-		}
-		return false;
-	}// end of hasDocument
-
-	/**
-	 * 檢查kml file kml-Document-Style & Folder
+	 * 檢查kml file kml-Document-Style & Folder 檢查kml file
+	 * kml-Folder-Document-Style & Folder
 	 * 
 	 * @return true = KML(my format) ; false = not;
 	 */
@@ -78,9 +60,14 @@ public class ParseKmlString {
 			if (jsonObject.getJSONObject(KML).has(DOCUMENT)) {
 				document = jsonObject.getJSONObject(KML)
 						.getJSONObject(DOCUMENT);
+				
 				if (document.has(STYLE) && document.has(FOLDER)) {
 					return true;
 				}
+			} else if (jsonObject.getJSONObject(KML).has(FOLDER)) {
+				document = jsonObject.getJSONObject(KML).getJSONObject(FOLDER)
+						.getJSONObject(DOCUMENT);
+				return true;
 			}
 		}
 		return false;
@@ -91,21 +78,21 @@ public class ParseKmlString {
 	 * 
 	 * @return String
 	 */
-	public String getDescription() {
-		if (hasDocument()) {
-			try {
-				String description = document.getJSONObject(PLACEMARK)
-						.getString("description");
-				return description;
-			} catch (JSONException e) {
-				Log.d("mdb", "parserkmlString class," + e.toString());
-				return null;
-			}
-		} else {
-			// TODO 如果沒有DOCUMENT的description
-			return null;
-		}
-	}// end of getDescription
+	// public String getDescription() {
+	// if (hasDocument()) {
+	// try {
+	// String description = document.getJSONObject(PLACEMARK)
+	// .getString("description");
+	// return description;
+	// } catch (JSONException e) {
+	// Log.d("mdb", "parserkmlString class," + e.toString());
+	// return null;
+	// }
+	// } else {
+	// // TODO 如果沒有DOCUMENT的description
+	// return null;
+	// }
+	// }// end of getDescription
 
 	/**
 	 * @param index
@@ -125,7 +112,6 @@ public class ParseKmlString {
 		String abgr = polyStyle.getString(COLOR);
 
 		// TODO STYLEMAP PARSING
-		Log.d("mdb", abgr);
 		return kmlColorToARGB(abgr);
 	}// end of getPoltColor
 
@@ -142,12 +128,12 @@ public class ParseKmlString {
 		} else {
 			String color = document.getJSONArray(STYLE).getJSONObject(index)
 					.optJSONObject(LINESTYLE).optString(COLOR, NO_COLOR);
-
 			if (color.equals(NO_COLOR)) {
 				abgr = "64FFFFFF";
 			} else {
 				JSONObject LineStyle = document.getJSONArray(STYLE)
 						.getJSONObject(index).getJSONObject(LINESTYLE);
+
 				abgr = LineStyle.getString(COLOR);
 
 				// JSONObject LineStyle = document.getJSONArray(STYLE)
@@ -155,7 +141,7 @@ public class ParseKmlString {
 				// abgr = LineStyle.getString(COLOR);
 			}
 		}
-		Log.d("mdb", abgr);
+		Log.d("mdb", "lineColor" + abgr);
 		return kmlColorToARGB(abgr);
 	}// end of getPoltColor
 
@@ -204,13 +190,11 @@ public class ParseKmlString {
 					String styleUrl = document.getJSONArray(STYLE_MAP)
 							.getJSONObject(index).getJSONArray(PAIR)
 							.getJSONObject(0).getString(STYLE_URL);
-
 					result = styleUrl.substring(1);
 					break IF;
 				}
 			}
 		}
-		Log.d("mdb", result);
 		return result;
 	}
 
@@ -249,11 +233,21 @@ public class ParseKmlString {
 	 * @return ArrayList
 	 */
 	public ArrayList<LatLng> getCoordinates(int index) {
-		String coordinates = document.getJSONObject(FOLDER)
-				.getJSONArray(PLACEMARK).getJSONObject(index)
-				.getJSONObject(MULTI_GEOMETRY).getJSONObject(POLYGON)
-				.getJSONObject(OUTER_BOUNDARY_IS).getJSONObject(LINEAR_RING)
-				.getString(COORDINATES);
+		String coordinates;
+
+		if (document.getJSONObject(FOLDER).getJSONArray(PLACEMARK)
+				.getJSONObject(index).optJSONObject(MULTI_GEOMETRY) == null) {
+			coordinates = document.getJSONObject(FOLDER)
+					.getJSONArray(PLACEMARK).getJSONObject(index)
+					.getJSONObject(POLYGON).getJSONObject(OUTER_BOUNDARY_IS)
+					.getJSONObject(LINEAR_RING).getString(COORDINATES);
+		} else {
+			coordinates = document.getJSONObject(FOLDER)
+					.getJSONArray(PLACEMARK).getJSONObject(index)
+					.getJSONObject(MULTI_GEOMETRY).getJSONObject(POLYGON)
+					.getJSONObject(OUTER_BOUNDARY_IS)
+					.getJSONObject(LINEAR_RING).getString(COORDINATES);
+		}
 
 		// 取出的kmlString轉為list，split用 | 分隔使用的分隔符號
 		List<String> listStringCoordinates = new ArrayList<String>(
@@ -296,8 +290,11 @@ public class ParseKmlString {
 	 * @return
 	 */
 	public String getPlaceMarkName(int index) {
-		String folderName = document.getJSONObject(FOLDER)
-				.getJSONArray(PLACEMARK).getJSONObject(index).getString(NAME);
+		// TODO name可能不是String
+		String folderName;
+		JSONObject placeMark = document.getJSONObject(FOLDER)
+				.getJSONArray(PLACEMARK).getJSONObject(index);
+		folderName = placeMark.optString(NAME);
 		return folderName;
 	}
 
