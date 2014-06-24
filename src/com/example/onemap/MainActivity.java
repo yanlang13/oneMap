@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.security.auth.PrivateCredentialPermission;
+
 import com.example.onemap.MapTools;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
@@ -321,22 +323,51 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			po.strokeColor(pks.getLineColor(index));
 			po.strokeWidth(pks.getLineWidth(index));
 			String key = pks.getPolyStyleId(index);
+			// TODO colorMode 意思?
+
 			polyStyle.put(key, po);
 		}
-
-		Log.d("mdb", "it's good");
-
+		
 		// 確認polyStyle有東西再動作，將圖徵與座標結合
 		if (!polyStyle.isEmpty()) {
-			Log.d("mdb", "start polyStyle=====");
+			Log.d("mdb", "=====start polyStyle=====");
+			Log.d("mdb", "polyStyle size:" + polyStyle.size());
 			for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
+				Log.d("mdb", "index:" + index);
 				PolygonOptions po = new PolygonOptions();
-				po = polyStyle.get(pks.transToStyleUrl(pks.getStyleUrl(index)));
-				po.addAll(pks.getCoordinates(index));
+
+				// key:styleUrl，取出的polygonOptions包含color of polygon and line
+				String styleUrl = pks.getStyleUrl(index);
+				po = polyStyle.get(pks.transToStyleUrl(styleUrl));
+
+				Log.d("mdb", "styleUrl: " + pks.transToStyleUrl(styleUrl));
+				Log.d("mdb", "po LatLng Size:" + po.getPoints().size());
+				Log.d("mdb", "pks LatLng Size:"
+						+ pks.getCoordinates(index).size());
+
+				if (po.getPoints().size() > 0) {
+				}
+				// TODO 位置錯誤問題(終點多畫一筆)，主要是po重複add了。但只有水資源圖重複?
+				// TODO 發現一:水資源圖重複使用同一個styleUrl
+				// TODO HASHMAP似乎是儲存POINTER 而非是一個實體，所以修改和新增都會改變HASMAP中的OBJECT
+				// http://stackoverflow.com/questions/934775/changing-value-after-its-placed-in-hashmap-changes-whats-inside-hashmap
+
+				ArrayList<LatLng> coordinates = pks.getCoordinates(index);
+				po.addAll(coordinates);
+				Log.d("mdb", "po LatLng add Size:" + po.getPoints().size());
 				String key = pks.getPlaceMarkName(index);
 				polyDisplay.put(key, po);
 			}
 		} // end of if
+
+		Log.d("mdb", "=====end polyStyle=====");
+
+		Iterator<String> iterator1 = polyStyle.keySet().iterator();
+		while (iterator1.hasNext()) {
+			String key = (String) iterator1.next();
+			Log.d("mdb", "polystyle point size:"
+					+ polyStyle.get(key).getPoints().size());
+		}
 
 		// 將layers放到地圖上
 		Iterator<String> iterator = polyDisplay.keySet().iterator();

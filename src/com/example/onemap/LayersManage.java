@@ -154,6 +154,8 @@ public class LayersManage extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}// end of onOptionsItemSelected
-
+	
+	//TODO 改寫BACKUP鍵，主要是需要重新onCreate
+	
 	// ============================================================ MenuED
 }
