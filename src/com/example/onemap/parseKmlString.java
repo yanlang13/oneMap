@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.google.android.gms.maps.model.LatLng;
+
+import android.R.integer;
 import android.graphics.Color;
 import android.util.Log;
 
@@ -72,11 +74,10 @@ public class ParseKmlString {
 					style = document.getJSONObject(STYLE);
 				}
 
-				Log.d("mdb", optStyle.toString());
-
 				// 如果styleMap is not jsonArray 才做styleMap
 				optStyleMap = document.optJSONArray(STYLE_MAP);
 				if (optStyleMap == null) {
+					//TODO 沒有styleMap的話...
 					styleMap = document.getJSONObject(STYLE_MAP);
 				}
 
@@ -137,7 +138,12 @@ public class ParseKmlString {
 	 * @return id: kml-Document-Style-id
 	 */
 	public String getPolyStyleId(int index) {
-		return optStyle.getJSONObject(index).getString(ID);
+		int length = getStyleLength();
+		if(length == 1){
+			return style.getString(ID);
+		}else{
+			return optStyle.getJSONObject(index).getString(ID);
+		}
 	}// end of getPolyStyleId
 
 	/**
@@ -145,11 +151,17 @@ public class ParseKmlString {
 	 * @return ARGB color
 	 */
 	public int getPolyColor(int index) {
-		JSONObject polyStyle = optStyle.getJSONObject(index).getJSONObject(
-				POLYSTYLE);
-		String abgr = polyStyle.getString(COLOR);
+		int length = getStyleLength();
+		String abgr;
+		if (length == 1) {
+			JSONObject polyStyle = style.getJSONObject(POLYSTYLE);
+			abgr = polyStyle.getString(COLOR);
+		} else {
+			JSONObject polyStyle = optStyle.getJSONObject(index).getJSONObject(
+					POLYSTYLE);
+			abgr = polyStyle.getString(COLOR);
+		}
 
-		// TODO STYLEMAP PARSING
 		return kmlColorToARGB(abgr);
 	}// end of getPoltColor
 
@@ -162,21 +174,35 @@ public class ParseKmlString {
 		int length = getStyleLength();
 
 		if (length == 1) {
-		}
-
-		// 沒有LINESTYLE
-		if (optStyle.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
-			abgr = "64FFFFFF";
-		} else {
-			String color = optStyle.getJSONObject(index)
-					.optJSONObject(LINESTYLE).optString(COLOR, NO_COLOR);
-			if (color.equals(NO_COLOR)) {
+			// 沒有LINESTYLE
+			if (style.optJSONObject(LINESTYLE) == null) {
 				abgr = "64FFFFFF";
 			} else {
-				JSONObject LineStyle = optStyle.getJSONObject(index)
-						.getJSONObject(LINESTYLE);
+				String color = style.optJSONObject(LINESTYLE).optString(COLOR,
+						NO_COLOR);
+				if (color.equals(NO_COLOR)) {
+					abgr = "64FFFFFF";
+				} else {
+					JSONObject LineStyle = style.getJSONObject(LINESTYLE);
+					abgr = LineStyle.getString(COLOR);
+				}
+			}
+		} else {
 
-				abgr = LineStyle.getString(COLOR);
+			// 沒有LINESTYLE
+			if (optStyle.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
+				abgr = "64FFFFFF";
+			} else {
+				String color = optStyle.getJSONObject(index)
+						.optJSONObject(LINESTYLE).optString(COLOR, NO_COLOR);
+				if (color.equals(NO_COLOR)) {
+					abgr = "64FFFFFF";
+				} else {
+					JSONObject LineStyle = optStyle.getJSONObject(index)
+							.getJSONObject(LINESTYLE);
+
+					abgr = LineStyle.getString(COLOR);
+				}
 			}
 		}
 		return kmlColorToARGB(abgr);
@@ -188,12 +214,24 @@ public class ParseKmlString {
 	 */
 	public float getLineWidth(int index) {
 		int width;
-		if (optStyle.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
-			width = 0;
+		int length = getStyleLength();
+
+		if (length == 1) {
+			if (style.optJSONObject(LINESTYLE) == null) {
+				width = 0;
+			} else {
+				JSONObject LineStyle = style.getJSONObject(LINESTYLE);
+				width = LineStyle.getInt(WIDTH);
+			}
 		} else {
-			JSONObject LineStyle = optStyle.getJSONObject(index).getJSONObject(
-					LINESTYLE);
-			width = LineStyle.getInt(WIDTH);
+
+			if (optStyle.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
+				width = 0;
+			} else {
+				JSONObject LineStyle = optStyle.getJSONObject(index)
+						.getJSONObject(LINESTYLE);
+				width = LineStyle.getInt(WIDTH);
+			}
 		}
 		return Float.valueOf(width);
 	}// end of getLineWidth
