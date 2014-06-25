@@ -28,7 +28,9 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.R.integer;
 import android.app.Activity;
@@ -311,7 +313,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	 * @param map
 	 */
 	private void kmlToMap(String kmlString, GoogleMap map) {
-		// TODO parsing KML to PolygonOptions []
 		ParseKmlString pks = new ParseKmlString(kmlString);
 
 		// 用for loop，來處理所有的polyStyle
@@ -324,50 +325,35 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			po.strokeWidth(pks.getLineWidth(index));
 			String key = pks.getPolyStyleId(index);
 			// TODO colorMode 意思?
-
+			
 			polyStyle.put(key, po);
 		}
-		
+
 		// 確認polyStyle有東西再動作，將圖徵與座標結合
 		if (!polyStyle.isEmpty()) {
 			Log.d("mdb", "=====start polyStyle=====");
-			Log.d("mdb", "polyStyle size:" + polyStyle.size());
 			for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
-				Log.d("mdb", "index:" + index);
 				PolygonOptions po = new PolygonOptions();
 
+				PolygonOptions copyFrom = new PolygonOptions();
+				
 				// key:styleUrl，取出的polygonOptions包含color of polygon and line
+				// 運用get...的方式，避開hashMap指向同一個object並同步修改的問題
 				String styleUrl = pks.getStyleUrl(index);
-				po = polyStyle.get(pks.transToStyleUrl(styleUrl));
-
-				Log.d("mdb", "styleUrl: " + pks.transToStyleUrl(styleUrl));
-				Log.d("mdb", "po LatLng Size:" + po.getPoints().size());
-				Log.d("mdb", "pks LatLng Size:"
-						+ pks.getCoordinates(index).size());
-
-				if (po.getPoints().size() > 0) {
-				}
-				// TODO 位置錯誤問題(終點多畫一筆)，主要是po重複add了。但只有水資源圖重複?
-				// TODO 發現一:水資源圖重複使用同一個styleUrl
-				// TODO HASHMAP似乎是儲存POINTER 而非是一個實體，所以修改和新增都會改變HASMAP中的OBJECT
-				// http://stackoverflow.com/questions/934775/changing-value-after-its-placed-in-hashmap-changes-whats-inside-hashmap
+				copyFrom = polyStyle.get(pks.transToStyleUrl(styleUrl));
+				
+				po.fillColor(copyFrom.getFillColor());
+				po.strokeColor(copyFrom.getStrokeColor());
+				po.strokeWidth(copyFrom.getStrokeWidth());
 
 				ArrayList<LatLng> coordinates = pks.getCoordinates(index);
 				po.addAll(coordinates);
-				Log.d("mdb", "po LatLng add Size:" + po.getPoints().size());
 				String key = pks.getPlaceMarkName(index);
 				polyDisplay.put(key, po);
 			}
 		} // end of if
 
 		Log.d("mdb", "=====end polyStyle=====");
-
-		Iterator<String> iterator1 = polyStyle.keySet().iterator();
-		while (iterator1.hasNext()) {
-			String key = (String) iterator1.next();
-			Log.d("mdb", "polystyle point size:"
-					+ polyStyle.get(key).getPoints().size());
-		}
 
 		// 將layers放到地圖上
 		Iterator<String> iterator = polyDisplay.keySet().iterator();
