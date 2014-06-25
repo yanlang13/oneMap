@@ -313,6 +313,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	 * @param map
 	 */
 	private void kmlToMap(String kmlString, GoogleMap map) {
+		//TODO 轉為AsyncTask
+		
 		ParseKmlString pks = new ParseKmlString(kmlString);
 
 		// 用for loop，來處理所有的polyStyle

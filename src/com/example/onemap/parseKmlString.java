@@ -13,9 +13,9 @@ import android.util.Log;
  */
 public class ParseKmlString {
 	private JSONObject jsonObject;
-	private JSONObject document; // 使用document開始取得檔案
+	private JSONObject document;
 	private JSONArray placeMark;
-	private JSONArray style;
+	private JSONObject style;
 	private JSONArray optStyle;
 	private JSONObject styleMap;
 	private JSONArray optStyleMap;
@@ -63,25 +63,32 @@ public class ParseKmlString {
 	public boolean checkKmlFormat() {
 		if (jsonObject.has(KML)) {
 			if (jsonObject.getJSONObject(KML).has(DOCUMENT)) {
-				// KML- document- style and folder-placeMark
+				// KML- document- style
 				document = jsonObject.getJSONObject(KML)
 						.getJSONObject(DOCUMENT);
-				if (document.has(STYLE) && document.has(FOLDER)) {
 
+				optStyle = document.optJSONArray(STYLE);
+				if (optStyle == null) {
+					style = document.getJSONObject(STYLE);
+				}
+
+				Log.d("mdb", optStyle.toString());
+
+				// 如果styleMap is not jsonArray 才做styleMap
+				optStyleMap = document.optJSONArray(STYLE_MAP);
+				if (optStyleMap == null) {
+					styleMap = document.getJSONObject(STYLE_MAP);
+				}
+
+				// KML - document - folder -placeMark or document - placeMark
+				if (document.has(FOLDER)) {
 					placeMark = document.getJSONObject(FOLDER).getJSONArray(
 							PLACEMARK);
-
-					style = document.getJSONArray(STYLE);
-					optStyle = document.optJSONArray(STYLE);
-
-					optStyleMap = document.optJSONArray(STYLE_MAP);
-
-					// 如果styleMap is not jsonArray 才做styleMap
-					if (optStyleMap == null) {
-						styleMap = document.getJSONObject(STYLE_MAP);
-					}
-					return true;
+				} else {
+					placeMark = document.getJSONArray(PLACEMARK);
 				}
+
+				return true;
 			} else if (jsonObject.getJSONObject(KML).has(FOLDER)) {
 				// KML- folder - document - style, styleMap and placeMark
 				document = jsonObject.getJSONObject(KML).getJSONObject(FOLDER)
@@ -89,7 +96,7 @@ public class ParseKmlString {
 
 				placeMark = document.getJSONArray(PLACEMARK);
 
-				style = document.getJSONArray(STYLE);
+				optStyle = document.getJSONArray(STYLE);
 				optStyle = document.optJSONArray(STYLE);
 
 				optStyleMap = document.optJSONArray(STYLE_MAP);
@@ -130,7 +137,7 @@ public class ParseKmlString {
 	 * @return id: kml-Document-Style-id
 	 */
 	public String getPolyStyleId(int index) {
-		return style.getJSONObject(index).getString(ID);
+		return optStyle.getJSONObject(index).getString(ID);
 	}// end of getPolyStyleId
 
 	/**
@@ -138,7 +145,7 @@ public class ParseKmlString {
 	 * @return ARGB color
 	 */
 	public int getPolyColor(int index) {
-		JSONObject polyStyle = style.getJSONObject(index).getJSONObject(
+		JSONObject polyStyle = optStyle.getJSONObject(index).getJSONObject(
 				POLYSTYLE);
 		String abgr = polyStyle.getString(COLOR);
 
@@ -152,23 +159,24 @@ public class ParseKmlString {
 	 */
 	public int getLineColor(int index) {
 		String abgr;
+		int length = getStyleLength();
+
+		if (length == 1) {
+		}
+
 		// 沒有LINESTYLE
-		if (style.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
+		if (optStyle.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
 			abgr = "64FFFFFF";
 		} else {
-			String color = style.getJSONObject(index).optJSONObject(LINESTYLE)
-					.optString(COLOR, NO_COLOR);
+			String color = optStyle.getJSONObject(index)
+					.optJSONObject(LINESTYLE).optString(COLOR, NO_COLOR);
 			if (color.equals(NO_COLOR)) {
 				abgr = "64FFFFFF";
 			} else {
-				JSONObject LineStyle = style.getJSONObject(index)
+				JSONObject LineStyle = optStyle.getJSONObject(index)
 						.getJSONObject(LINESTYLE);
 
 				abgr = LineStyle.getString(COLOR);
-
-				// JSONObject LineStyle = style
-				// .getJSONObject(index).getJSONObject(LINESTYLE);
-				// abgr = LineStyle.getString(COLOR);
 			}
 		}
 		return kmlColorToARGB(abgr);
@@ -180,10 +188,10 @@ public class ParseKmlString {
 	 */
 	public float getLineWidth(int index) {
 		int width;
-		if (style.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
+		if (optStyle.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
 			width = 0;
 		} else {
-			JSONObject LineStyle = style.getJSONObject(index).getJSONObject(
+			JSONObject LineStyle = optStyle.getJSONObject(index).getJSONObject(
 					LINESTYLE);
 			width = LineStyle.getInt(WIDTH);
 		}
@@ -240,9 +248,9 @@ public class ParseKmlString {
 	 */
 	public int getStyleLength() {
 		if (optStyle == null) {
-			return 0;
+			return 1;
 		}
-		return style.length();
+		return optStyle.length();
 	}// end of getJsonObejctLength
 
 	/**
