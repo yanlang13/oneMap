@@ -47,10 +47,11 @@ public class ParseKmlString {
 
 	private static final String NAME = "name";
 
+	private boolean hasStyleMap = true;
+
 	public ParseKmlString(String kmlString) {
 		// github下載的JSONObject
 		jsonObject = XML.toJSONObject(kmlString);
-
 		if (checkKmlFormat()) {
 			// document = jsonObject.getJSONObject(KML).getJSONObject(DOCUMENT);
 		}
@@ -77,8 +78,12 @@ public class ParseKmlString {
 				// 如果styleMap is not jsonArray 才做styleMap
 				optStyleMap = document.optJSONArray(STYLE_MAP);
 				if (optStyleMap == null) {
-					//TODO 沒有styleMap的話...
-					styleMap = document.getJSONObject(STYLE_MAP);
+					// TODO 沒有styleMap的話...
+					if (document.optJSONObject(STYLE_MAP) != null) {
+						styleMap = document.getJSONObject(STYLE_MAP);
+					} else {
+						hasStyleMap = false;
+					}
 				}
 
 				// KML - document - folder -placeMark or document - placeMark
@@ -139,9 +144,9 @@ public class ParseKmlString {
 	 */
 	public String getPolyStyleId(int index) {
 		int length = getStyleLength();
-		if(length == 1){
+		if (length == 1) {
 			return style.getString(ID);
-		}else{
+		} else {
 			return optStyle.getJSONObject(index).getString(ID);
 		}
 	}// end of getPolyStyleId
@@ -246,25 +251,28 @@ public class ParseKmlString {
 		int length = getStyleMapLength();
 		String result = placeMarkStyleUrl;
 		// if name: IF
-		IF: if (length == 0) {
-			// 先做如果sytleMap不是陣列的情況
-			String styleMapId = styleMap.getString(ID);
-			if (placeMarkStyleUrl.equals(styleMapId)) {
-				String styleUrl = styleMap.getJSONArray(PAIR).getJSONObject(0)
-						.getString(STYLE_URL);
-				result = styleUrl.substring(1);
-			}
-		} else {
-			// styleMap如果是陣列的話
-			for (int index = 0; index < length; index++) {
-				String styleMapId = document.getJSONArray(STYLE_MAP)
-						.getJSONObject(index).getString(ID);
+
+		if (hasStyleMap) {
+			IF: if (length == 0) {
+				// 先做如果sytleMap不是陣列的情況
+				String styleMapId = styleMap.getString(ID);
 				if (placeMarkStyleUrl.equals(styleMapId)) {
-					String styleUrl = document.getJSONArray(STYLE_MAP)
-							.getJSONObject(index).getJSONArray(PAIR)
+					String styleUrl = styleMap.getJSONArray(PAIR)
 							.getJSONObject(0).getString(STYLE_URL);
 					result = styleUrl.substring(1);
-					break IF;
+				}
+			} else {
+				// styleMap如果是陣列的話
+				for (int index = 0; index < length; index++) {
+					String styleMapId = document.getJSONArray(STYLE_MAP)
+							.getJSONObject(index).getString(ID);
+					if (placeMarkStyleUrl.equals(styleMapId)) {
+						String styleUrl = document.getJSONArray(STYLE_MAP)
+								.getJSONObject(index).getJSONArray(PAIR)
+								.getJSONObject(0).getString(STYLE_URL);
+						result = styleUrl.substring(1);
+						break IF;
+					}
 				}
 			}
 		}
