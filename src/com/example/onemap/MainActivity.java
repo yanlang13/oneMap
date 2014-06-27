@@ -6,13 +6,9 @@ import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.security.auth.PrivateCredentialPermission;
-
 import com.example.onemap.MapTools;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
@@ -22,17 +18,11 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
-
-import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -46,6 +36,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.sax.EndElementListener;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -85,10 +76,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 	private DBHelper dbHelper;
 	private HashMap<String, String> showLayers; // get from database
-	private HashMap<String, PolygonOptions> polyStyle; // color and width
-	private HashMap<String, PolygonOptions> polyDisplay; // ready to display(add
-															// LatLng)
-	private HashMap<String, PolygonOptions> polyDesc; // desc
 
 	// ====================================================================Declared
 
@@ -100,10 +87,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		progressDialog = new ProgressDialog(this);
 		dbHelper = new DBHelper(this);
 		showLayers = new HashMap<String, String>();
-		polyStyle = new HashMap<String, PolygonOptions>();
-		polyDisplay = new HashMap<String, PolygonOptions>();
-		polyDesc = new HashMap<String, PolygonOptions>();
 
+		// MainActivity.this.deleteDatabase("oneMaps.db");
 		setLeftDrawer();
 
 	}// end of onCreate
@@ -213,7 +198,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// ====================================================================onCreated
 
 	// ====================================================================onResuming
-
 	/**
 	 * @param position
 	 *            選擇哪一個base map。
@@ -227,57 +211,14 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 						map, THE_LAST_CP);
 				setBaseMap(map, position);
 
-				// 抓database裡面的layers
-				List<Layer> layers = dbHelper.getAllLayer();
+				addPolygon();
 
-				for (Layer l : layers) {
-					// TODO 判斷是否需要新增到hashMap
-					// 要display的圖才放到showLayers
-					if (l.getDisplay().equals("True")) {
-						showLayers.put(l.getTitle(), l.getKmlString());
-					}
-				}// end of for
-
-				// 開啟DATABASE把DISPLAY TRUE的KML放入地圖
-				if (!showLayers.isEmpty()) {
-					// keySet()是傳回key的set，iterator則用來讀取collections
-					Iterator<String> iterator = showLayers.keySet().iterator();
-					while (iterator.hasNext()) {
-						String keyTitle = (String) iterator.next();
-						String kmlString = showLayers.get(keyTitle);
-						// TODO 判斷那些要重新製作polygonOptions，那些不用
-						Log.d("mdb", "key title: " + keyTitle);
-
-						// TODO try catch 避免無法讀取kml file而造成的MAINACTIVITY開啟錯誤
-						try {
-							kmlToMap(kmlString, map);
-						} catch (NullPointerException e) {
-							Toast.makeText(
-									MainActivity.this,
-									"The " + keyTitle + ".kml can't be parsed.",
-									Toast.LENGTH_LONG).show();
-							Log.d("mdb", e.toString());
-							dbHelper.deleteLayerRow(dbHelper.getLater(keyTitle));
-						} catch (JSONException e) {
-							Toast.makeText(
-									MainActivity.this,
-									"The " + keyTitle + ".kml can't be parsed.",
-									Toast.LENGTH_LONG).show();
-							Log.d("mdb", e.toString());
-							dbHelper.deleteLayerRow(dbHelper.getLater(keyTitle));
-						}
-					}// end of if
-				}
-			} else {
-				Toast.makeText(getApplication(),
-						"check display layers on" + R.string.layers_manage,
-						Toast.LENGTH_SHORT).show();
 			}// end of if
-		}// end of if
 
-		map.setMyLocationEnabled(true);
-		map.setOnMyLocationButtonClickListener(this);
-	}
+			map.setMyLocationEnabled(true);
+			map.setOnMyLocationButtonClickListener(this);
+		}
+	}// end of setUpSingleMapIfNeeded
 
 	private void setUpLocationClientIfNeeded() { // call from onResume
 		if (mLocationClient == null) {
@@ -306,65 +247,55 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		}
 	}// end of setMapLayoutType
 
-	/**
-	 * parsing kmlString to polygonOptions and add polygonOptions to map.
-	 * 
-	 * @param kmlString
-	 * @param map
-	 */
-	private void kmlToMap(String kmlString, GoogleMap map) {
-		//TODO 轉為AsyncTask
-		
-		ParseKmlString pks = new ParseKmlString(kmlString);
+	private void addPolygon() {
+		// 抓database裡面的layers
+		List<Layer> layers = dbHelper.getAllLayer();
 
-		// 用for loop，來處理所有的polyStyle
-		for (int index = 0; index < pks.getStyleLength(); index++) {
-			// po儲存color and width
-			PolygonOptions po = new PolygonOptions();
-
-			po.fillColor(pks.getPolyColor(index));
-			po.strokeColor(pks.getLineColor(index));
-			po.strokeWidth(pks.getLineWidth(index));
-			String key = pks.getPolyStyleId(index);
-			// TODO colorMode 意思?
-			
-			polyStyle.put(key, po);
-		}
-
-		// 確認polyStyle有東西再動作，將圖徵與座標結合
-		if (!polyStyle.isEmpty()) {
-			Log.d("mdb", "=====start polyStyle=====");
-			for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
-				PolygonOptions po = new PolygonOptions();
-
-				PolygonOptions copyFrom = new PolygonOptions();
-				
-				// key:styleUrl，取出的polygonOptions包含color of polygon and line
-				// 運用get...的方式，避開hashMap指向同一個object並同步修改的問題
-				String styleUrl = pks.getStyleUrl(index);
-				copyFrom = polyStyle.get(pks.transToStyleUrl(styleUrl));
-				
-				po.fillColor(copyFrom.getFillColor());
-				po.strokeColor(copyFrom.getStrokeColor());
-				po.strokeWidth(copyFrom.getStrokeWidth());
-
-				ArrayList<LatLng> coordinates = pks.getCoordinates(index);
-				po.addAll(coordinates);
-				String key = pks.getPlaceMarkName(index);
-				polyDisplay.put(key, po);
+		for (Layer l : layers) {
+			// TODO 判斷是否需要新增到hashMap
+			// 要display的圖才放到showLayers
+			if (l.getDisplay().equals("True")) {
+				showLayers.put(l.getTitle(), l.getKmlString());
 			}
-		} // end of if
+		}// end of for
 
-		Log.d("mdb", "=====end polyStyle=====");
+		// 開啟DATABASE把DISPLAY TRUE的KML放入地圖
+		if (!showLayers.isEmpty()) {
+			// keySet()是傳回key的set，iterator則用來讀取collections
+			Iterator<String> iterator = showLayers.keySet().iterator();
+			while (iterator.hasNext()) {
+				String keyTitle = (String) iterator.next();
+				String kmlString = showLayers.get(keyTitle);
 
-		// 將layers放到地圖上
-		Iterator<String> iterator = polyDisplay.keySet().iterator();
-		while (iterator.hasNext()) {
-			String key = (String) iterator.next();
-			map.addPolygon(polyDisplay.get(key));
-		}
+				// TODO 判斷那些要重新製作polygonOptions，那些不用
+				Log.d("mdb", "key title: " + keyTitle);
 
-	}// end of kmlToMap
+				// TODO try catch 避免無法讀取kml file而造成的MAINACTIVITY開啟錯誤
+				try {
+					new KmlToMapTask().execute(kmlString);
+				} catch (NullPointerException e) {
+					Toast.makeText(MainActivity.this,
+							"The " + keyTitle + ".kml can't be parsed.",
+							Toast.LENGTH_LONG).show();
+					Log.d("mdb", e.toString());
+					dbHelper.deleteLayerRow(dbHelper.getLayer(keyTitle));
+				} catch (JSONException e) {
+					Toast.makeText(MainActivity.this,
+							"The " + keyTitle + ".kml can't be parsed.",
+							Toast.LENGTH_LONG).show();
+					Log.d("mdb", e.toString());
+					dbHelper.deleteLayerRow(dbHelper.getLayer(keyTitle));
+				}// end of try
+			}// end of while
+		} else {
+			Toast.makeText(
+					getApplication(),
+					"add layers from "
+							+ (String) this.getResources().getText(
+									R.string.layers_manage), Toast.LENGTH_SHORT)
+					.show();
+		}// end of if
+	}// end of addPolygon
 
 	// ====================================================================onResumed
 
@@ -443,6 +374,35 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// ====================================================================MenuED
 
 	// ====================================================================Classing
+
+	private class KmlToMapTask extends TaskKmlToMap {
+		@Override
+		protected void onPreExecute() {
+			progressDialog.show();
+			progressDialog.setCanceledOnTouchOutside(false);
+		}// end of onPreExecute
+
+		@Override
+		protected void onPostExecute(HashMap<String, PolygonOptions> polyDisplay) {
+			// 將layers放到地圖上
+			if (!polyDisplay.isEmpty()) {
+				Log.d("mdb", "=====start onPostExecute=====");
+				Iterator<String> iterator = polyDisplay.keySet().iterator();
+				while (iterator.hasNext()) {
+					String key = (String) iterator.next();
+					 map.addPolygon(polyDisplay.get(key));
+					 Log.d("mdb", "end of while");
+				}
+				progressDialog.dismiss();
+				Log.d("mdb", "=====end of  onPostExecute=====");
+			} else {
+				Toast.makeText(MainActivity.this, "wrong kml format",
+						Toast.LENGTH_SHORT).show();
+				progressDialog.dismiss();
+			}
+		}// end of onPostExecute
+	}// end of KmlToMapTask
+
 	/**
 	 * 取得地址的座標，然後moveCameraTo
 	 * 
@@ -454,7 +414,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			progressDialog.show();
 			progressDialog.setCanceledOnTouchOutside(false);
 		}
-
 		@Override
 		protected void onPostExecute(LatLngBounds bounds) {
 			if (bounds != null) {

@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import com.example.onemap.R;
+import com.google.android.gms.drive.internal.l;
+import com.google.android.gms.maps.model.LatLng;
+
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
@@ -198,6 +201,8 @@ public class ListSdCard extends Activity {
 					layer.setKmlString(kmlString);
 					layer.setDisplay("True");
 					dbHelper.addLayer(layer);
+
+					// TODO 壓縮KML String再放入S QLite 或是 string的其他問題
 
 					// 沒有重複，就跳回mainActivity
 					if (!dbHelper.getDuplicate()) {

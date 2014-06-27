@@ -47,14 +47,14 @@ public class ParseKmlString {
 
 	private static final String NAME = "name";
 
-	private boolean hasStyleMap = true;
+	private boolean kmlHasStyleMap = true;
+	private boolean styleIsJSONObject = false;
+	private boolean styleMapIsJSONObject = false;
 
 	public ParseKmlString(String kmlString) {
 		// github下載的JSONObject
 		jsonObject = XML.toJSONObject(kmlString);
-		if (checkKmlFormat()) {
-			// document = jsonObject.getJSONObject(KML).getJSONObject(DOCUMENT);
-		}
+		checkKmlFormat();
 	}// end of parseKmlString
 
 	/**
@@ -82,7 +82,7 @@ public class ParseKmlString {
 					if (document.optJSONObject(STYLE_MAP) != null) {
 						styleMap = document.getJSONObject(STYLE_MAP);
 					} else {
-						hasStyleMap = false;
+						kmlHasStyleMap = false;
 					}
 				}
 
@@ -118,27 +118,6 @@ public class ParseKmlString {
 	}// end of hasStyleAndFolder
 
 	/**
-	 * get data from kml description
-	 * 
-	 * @return String
-	 */
-	// public String getDescription() {
-	// if (hasDocument()) {
-	// try {
-	// String description = document.getJSONObject(PLACEMARK)
-	// .getString("description");
-	// return description;
-	// } catch (JSONException e) {
-	// Log.d("mdb", "parserkmlString class," + e.toString());
-	// return null;
-	// }
-	// } else {
-	// // TODO 如果沒有DOCUMENT的description
-	// return null;
-	// }
-	// }// end of getDescription
-
-	/**
 	 * @param index
 	 * @return id: kml-Document-Style-id
 	 */
@@ -156,9 +135,8 @@ public class ParseKmlString {
 	 * @return ARGB color
 	 */
 	public int getPolyColor(int index) {
-		int length = getStyleLength();
 		String abgr;
-		if (length == 1) {
+		if (styleMapIsJSONObject) {
 			JSONObject polyStyle = style.getJSONObject(POLYSTYLE);
 			abgr = polyStyle.getString(COLOR);
 		} else {
@@ -176,9 +154,7 @@ public class ParseKmlString {
 	 */
 	public int getLineColor(int index) {
 		String abgr;
-		int length = getStyleLength();
-
-		if (length == 1) {
+		if (styleIsJSONObject) {
 			// 沒有LINESTYLE
 			if (style.optJSONObject(LINESTYLE) == null) {
 				abgr = "64FFFFFF";
@@ -219,9 +195,7 @@ public class ParseKmlString {
 	 */
 	public float getLineWidth(int index) {
 		int width;
-		int length = getStyleLength();
-
-		if (length == 1) {
+		if (styleIsJSONObject) {
 			if (style.optJSONObject(LINESTYLE) == null) {
 				width = 0;
 			} else {
@@ -252,8 +226,8 @@ public class ParseKmlString {
 		String result = placeMarkStyleUrl;
 		// if name: IF
 
-		if (hasStyleMap) {
-			IF: if (length == 0) {
+		if (kmlHasStyleMap) {
+			IF: if (styleMapIsJSONObject) {
 				// 先做如果sytleMap不是陣列的情況
 				String styleMapId = styleMap.getString(ID);
 				if (placeMarkStyleUrl.equals(styleMapId)) {
@@ -284,6 +258,7 @@ public class ParseKmlString {
 	 */
 	public int getStyleMapLength() {
 		if (optStyleMap == null) {
+			styleMapIsJSONObject = true;
 			return 0;
 		}
 		return optStyleMap.length();
@@ -294,6 +269,7 @@ public class ParseKmlString {
 	 */
 	public int getStyleLength() {
 		if (optStyle == null) {
+			styleIsJSONObject = true;
 			return 1;
 		}
 		return optStyle.length();

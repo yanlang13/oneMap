@@ -1,13 +1,18 @@
 package com.example.onemap;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import android.content.Context;
 import android.os.Environment;
@@ -15,13 +20,14 @@ import android.util.Log;
 
 public class OtherTools {
 	private static final String DATABASE_NAME = "oneMaps.db";
-	
+
 	/**
 	 * 輸入file轉為string format
+	 * 
 	 * @param file
 	 * @return string
 	 */
-	public static String fileToString(File file){
+	public static String fileToString(File file) {
 		BufferedReader br;
 		try {
 			br = new BufferedReader(new FileReader(file));
@@ -43,10 +49,9 @@ public class OtherTools {
 		}
 		return null;
 	}// end of kmlToString
-	
-	
+
 	/**
-	 * 路徑都是寫死的 => onemap/database/ to sd card 
+	 * 路徑都是寫死的 => onemap/database/ to sd card
 	 */
 	public static void copyDBtoSDcard() {
 		// 輸出位置，預設位置為 /mnt/sdcard
@@ -94,4 +99,43 @@ public class OtherTools {
 
 	}// end of copyDBtoSDcard
 
+	public static String compressString(String string) {
+		String outStr = string;
+		try {
+			if (string == null || string.length() == 0) {
+				return string;
+			}
+			Log.d("mdb", "String length : " + string.length());
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			GZIPOutputStream gzip = new GZIPOutputStream(out);
+			gzip.write(string.getBytes());
+			gzip.close();
+			outStr = out.toString("ISO-8859-1");
+			Log.d("mdb", "Output String lenght : " + outStr.length());
+		} catch (IOException e) {
+			Log.d("mdb", "OtherTools CLAss:" + e.toString());
+		}
+		return outStr;
+	}
+
+	public static String decompressString(String string) {
+		String outStr = string;
+		try {
+			if (string == null || string.length() == 0) {
+				return string;
+			}
+			GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(
+					string.getBytes("ISO-8859-1")));
+			BufferedReader bf = new BufferedReader(new InputStreamReader(gis,
+					"ISO-8859-1"));
+			outStr = "";
+			String line;
+			while ((line = bf.readLine()) != null) {
+				outStr += line;
+			}
+		} catch (IOException e) {
+			Log.d("mdb", "OtherTools CLAss:" + e.toString());
+		}
+		return outStr;
+	}
 }

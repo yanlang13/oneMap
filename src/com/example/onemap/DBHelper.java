@@ -64,6 +64,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	// ==============================================================DBControl
 	public void addLayer(Layer layer) {
+		Log.d("mdb", "=====start addLayer=====");
 		// 1. get reference to writable DB
 		// 這邊duplicateCheck會關閉db，所以將db放到裡面，開關才不會錯誤
 		if (!duplicateCheck(layer.getTitle())) {
@@ -83,13 +84,15 @@ public class DBHelper extends SQLiteOpenHelper {
 			duplicate = true;
 			Toast.makeText(context, R.string.duplicate_name, Toast.LENGTH_SHORT).show();
 		}
+		Log.d("mdb", "=====end of addLayer=====");
 	}// end of addLayer
 
 	/**
 	 * @param title
 	 * @return layer
 	 */
-	public Layer getLater(String title) {
+	public Layer getLayer(String title) {
+		Log.d("mdb", "=====start getLayer=====");
 		// 1. get reference to readable DB
 		SQLiteDatabase db = this.getReadableDatabase();
 		Layer layer = new Layer();
@@ -118,6 +121,7 @@ public class DBHelper extends SQLiteOpenHelper {
 			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
 		}
 		db.close();
+		Log.d("mdb", "=====end of getLayer=====");
 		return layer;
 	}
 
