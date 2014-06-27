@@ -190,15 +190,14 @@ public class ListSdCard extends Activity {
 			String fileName = tempFile.getName();
 			if (fileName.endsWith(".kml")) {
 				// 取出kml file的檔案名稱 (.kml不要)
-				String title = fileName.substring(0, fileName.length() - 4);
+				String layerName = fileName.substring(0, fileName.length() - 4);
 				String kmlString = OtherTools.fileToString(tempFile);
 
 				// 如果不是kML FILE就不用新增到資料庫了
 				ParseKmlString pks = new ParseKmlString(kmlString);
 				if (pks.checkKmlFormat()) {
 					Layer layer = new Layer();
-					layer.setTitle(title);
-					layer.setKmlString(kmlString);
+					layer.setLayerName(layerName);
 					layer.setDisplay("True");
 					dbHelper.addLayer(layer);
 

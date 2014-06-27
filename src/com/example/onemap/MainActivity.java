@@ -255,7 +255,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			// TODO 判斷是否需要新增到hashMap
 			// 要display的圖才放到showLayers
 			if (l.getDisplay().equals("True")) {
-				showLayers.put(l.getTitle(), l.getKmlString());
+				showLayers.put(l.getLayerName(), l.getKmlString());
 			}
 		}// end of for
 

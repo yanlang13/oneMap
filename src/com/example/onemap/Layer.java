@@ -2,43 +2,37 @@ package com.example.onemap;
 
 public class Layer {
 	private String id;
-	private String title;
-	private String desc;
-	private String kmlString;
+	private String layerName;
+	private String lDesc;
 	private String display;
 
 	public Layer() {
 	}
 
-	public Layer(String title, String desc, String kmlString, String display) {
+	public Layer(String LayerName, String desciption, String display) {
 		super();
-		this.title = title;
-		this.desc = desc;
-		this.kmlString = kmlString;
+		this.layerName = LayerName;
+		this.lDesc = desciption;
 		this.display = display;
 	}
 
 	@Override
 	public String toString() {
 		return String.format(
-				"[Id: %s,Title: %s, Description: %s, Display: %s, kmlString: %s]",
-				id, title, desc, display, kmlString);
+				"[Id: %s,Title: %s, Description: %s, Display: %s]", id, layerName,
+				lDesc, display);
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public String getTitle() {
-		return title;
+	public String getLayerName() {
+		return layerName;
 	}
 
 	public String getDesc() {
-		return desc;
-	}
-
-	public String getKmlString() {
-		return kmlString;
+		return lDesc;
 	}
 
 	public String getDisplay() {
@@ -52,16 +46,12 @@ public class Layer {
 		this.id = id;
 	}
 
-	public void setTitle(String title) {
-		this.title = title;
+	public void setLayerName(String layerName) {
+		this.layerName = layerName;
 	}
 
-	public void setDesc(String desc) {
-		this.desc = desc;
-	}
-
-	public void setKmlString(String kmlString) {
-		this.kmlString = kmlString;
+	public void setDesc(String description) {
+		this.lDesc = description;
 	}
 
 	public void setDisplay(String display) {

@@ -2,6 +2,8 @@ package com.example.onemap;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -14,32 +16,64 @@ import android.widget.Toast;
 public class DBHelper extends SQLiteOpenHelper {
 	final static int DB_VERSION = 1;
 	private static final String DATABASE_NAME = "oneMaps.db";
-	private static final String TABLE_LAYERS = "layers";
-	// 欄位1，自動產生
-	private static final String FIELD_ID = "id";
-	// 欄位2, string
-	private static final String FIELD_TITLE = "LayerTitle";
-	// 欄位3, string
-	private static final String FIELD_DESC = "LayerDesc";
-	// 欄位4, string
-	private static final String FIELD_KML_STRING = "KmlString";
-	// 欄位5, string, true and false
-	private static final String FIELD_DISPLAY = "Display";
 
-	final static String[] COLUMNS = { FIELD_ID, FIELD_TITLE, FIELD_DESC,
-			FIELD_KML_STRING, FIELD_DISPLAY };
+	private static final String TABLE_LAYERS = "Layers";
+	private static final String TABLE_PLACE = "PlaceMarks";
+	private static final String TABLE_STYLE = "Styles";
 
-	final static String INIT_TABLE = "CREATE TABLE IF NOT EXISTS "
+	// column of Layers
+	private static final String LA_FIELD_ID = "id";
+	private static final String LA_FIELD_LAYER_NAME = "Layer Name"; // String
+	private static final String LA_FIELD_DESC = "Layer Description";// String
+	private static final String LA_FIELD_DISPLAY = "Display";// String
+
+	// column of PlaceMarks
+	private static final String PM_FIELD_ID = "id";
+	private static final String PM_FIELD_LAYER_NAME = "Layer Name";// String
+	private static final String PM_FIELD_PLACEMARK_NAME = "PlaceMark Name";// String
+	private static final String PM_FIELD_STYLEURL = "StyleUrl"; // String
+	private static final String PM_FIELD_COORDINATE = "Coordinate";// LatLng
+	private static final String PM_FIELD_DESC = "placeMark Description";// HTML
+
+	// column of Styles
+	private static final String ST_FIELD_ID = "id";
+	private static final String ST_FIELD_LAYER_NAME = "Layer Name";// String
+	private static final String ST_FIELD_STYLE_NAME = "Style Name";// String
+	private static final String ST_FIELD_STYLE_CONTENT = "Style Content";// PlygonOptions
+
+	final static String[] LA_COLUMNS = { LA_FIELD_ID, LA_FIELD_LAYER_NAME,
+			LA_FIELD_DESC, LA_FIELD_DISPLAY };
+
+	final static String[] PM_COLUMNS = { PM_FIELD_ID, PM_FIELD_LAYER_NAME,
+			PM_FIELD_PLACEMARK_NAME, PM_FIELD_STYLEURL, PM_FIELD_COORDINATE,
+			PM_FIELD_DESC };
+
+	final static String[] ST_COLUMNS = { ST_FIELD_ID, ST_FIELD_LAYER_NAME,
+			ST_FIELD_STYLE_NAME, ST_FIELD_STYLE_CONTENT };
+
+	final static String INIT_LA_TABLE = "CREATE TABLE IF NOT EXISTS "
 			+ TABLE_LAYERS + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
-			+ FIELD_TITLE + " TEXT, " + FIELD_DESC + " TEXT, "
-			+ FIELD_KML_STRING + " TEXT, " + FIELD_DISPLAY + " TEXT);";
+			+ LA_FIELD_LAYER_NAME + " TEXT, " + LA_FIELD_DESC + " TEXT, "
+			+ LA_FIELD_DISPLAY + " TEXT);";
 
-	final static String DROP_TABLE = "DROP TABLE IF EXISTS " + TABLE_LAYERS;
+	final static String INIT_PM_TABLE = "CREATE TABLE IF NOT EXISTS "
+			+ TABLE_PLACE + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
+			+ PM_FIELD_LAYER_NAME + " TEXT, " + PM_FIELD_PLACEMARK_NAME
+			+ " TEXT, " + PM_FIELD_STYLEURL + " TEXT, " + PM_FIELD_COORDINATE
+			+ " TEXT, " + PM_FIELD_DESC + " TEXT);";
 
+	final static String INIT_ST_TABLE = "CREATE TABLE IF NOT EXISTS "
+			+ TABLE_STYLE + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
+			+ ST_FIELD_LAYER_NAME + " TEXT, " + ST_FIELD_STYLE_NAME + " TEXT, "
+			+ ST_FIELD_STYLE_CONTENT + " TEXT);";
+
+	final static String DROP_LA_TABLE = "DROP TABLE IF EXISTS " + TABLE_LAYERS;
+	final static String DROP_PM_TABLE = "DROP TABLE IF EXISTS " + TABLE_PLACE;
+	final static String DROP_ST_TABLE = "DROP TABLE IF EXISTS " + TABLE_STYLE;
 
 	private Context context;
-	
-	//用在確認是否重複，ListSdCard使用
+
+	// 用在確認是否重複，ListSdCard使用
 	private boolean duplicate = false;
 
 	// =================================================================
@@ -53,38 +87,41 @@ public class DBHelper extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 		// 只有當getRead/Writable...時才會做onCreate
 		Log.d("mdb", "DBHepler onCreate");
-		db.execSQL(INIT_TABLE);
+		db.execSQL(INIT_LA_TABLE);
+		db.execSQL(INIT_PM_TABLE);
+		db.execSQL(INIT_ST_TABLE);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		Log.d("mdb", "db onUpgrade");
-		db.execSQL(DROP_TABLE);
+		db.execSQL(DROP_LA_TABLE);
+		db.execSQL(DROP_PM_TABLE);
+		db.execSQL(DROP_ST_TABLE);
 	}
 
-	// ==============================================================DBControl
+	// ======================== LAYERS table methods ========================
+
 	public void addLayer(Layer layer) {
-		Log.d("mdb", "=====start addLayer=====");
 		// 1. get reference to writable DB
 		// 這邊duplicateCheck會關閉db，所以將db放到裡面，開關才不會錯誤
-		if (!duplicateCheck(layer.getTitle())) {
+		if (!duplicateCheck(layer.getLayerName())) {
 			SQLiteDatabase db = this.getWritableDatabase();
 			// 2. create ContentValues to add key "column"/value
 			ContentValues values = new ContentValues();
-			values.put(FIELD_TITLE, layer.getTitle());
-			values.put(FIELD_DESC, layer.getDesc());
-			values.put(FIELD_KML_STRING, layer.getKmlString());
-			values.put(FIELD_DISPLAY, layer.getDisplay());
+			values.put(LA_FIELD_LAYER_NAME, layer.getLayerName());
+			values.put(LA_FIELD_DESC, layer.getDesc());
+			values.put(LA_FIELD_DISPLAY, layer.getDisplay());
 			// 3. insert
 			db.insert(TABLE_LAYERS, null, values);
 			// 4. close
 			db.close();
 			duplicate = false;
-		}else{
+		} else {
 			duplicate = true;
-			Toast.makeText(context, R.string.duplicate_name, Toast.LENGTH_SHORT).show();
+			Toast.makeText(context, R.string.duplicate_name, Toast.LENGTH_SHORT)
+					.show();
 		}
-		Log.d("mdb", "=====end of addLayer=====");
 	}// end of addLayer
 
 	/**
@@ -92,15 +129,14 @@ public class DBHelper extends SQLiteOpenHelper {
 	 * @return layer
 	 */
 	public Layer getLayer(String title) {
-		Log.d("mdb", "=====start getLayer=====");
 		// 1. get reference to readable DB
 		SQLiteDatabase db = this.getReadableDatabase();
 		Layer layer = new Layer();
 		// 2. build query
 		try {
 			Cursor cursor = db.query(TABLE_LAYERS, // a. table
-					COLUMNS, // b. column names
-					FIELD_TITLE + "=?", // c. selections
+					LA_COLUMNS, // b. column names
+					LA_FIELD_LAYER_NAME + "=?", // c. selections
 					new String[] { title }, // d. selections args
 					null, // e. group by
 					null, // f. having
@@ -112,16 +148,14 @@ public class DBHelper extends SQLiteOpenHelper {
 			}
 			// 4. build book object
 			layer.setId(cursor.getString(0));
-			layer.setTitle(cursor.getString(1));
+			layer.setLayerName(cursor.getString(1));
 			layer.setDesc(cursor.getString(2));
-			layer.setKmlString(cursor.getString(3));
-			layer.setDisplay(cursor.getString(4));
+			layer.setDisplay(cursor.getString(3));
 			// 5. return book
 		} catch (CursorIndexOutOfBoundsException e) {
 			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
 		}
 		db.close();
-		Log.d("mdb", "=====end of getLayer=====");
 		return layer;
 	}
 
@@ -145,10 +179,9 @@ public class DBHelper extends SQLiteOpenHelper {
 				do {
 					layer = new Layer();
 					layer.setId(cursor.getString(0));
-					layer.setTitle(cursor.getString(1));
+					layer.setLayerName(cursor.getString(1));
 					layer.setDesc(cursor.getString(2));
-					layer.setKmlString(cursor.getString(3));
-					layer.setDisplay(cursor.getString(4));
+					layer.setDisplay(cursor.getString(3));
 					// Add book to books
 					layers.add(layer);
 				} while (cursor.moveToNext());
@@ -164,7 +197,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	public void deleteLayerRow(Layer layer) {
 		// 1. get reference to writable DB
 		SQLiteDatabase db = this.getWritableDatabase();
-		db.delete(TABLE_LAYERS, FIELD_ID + " = ?",
+		db.delete(TABLE_LAYERS, LA_FIELD_ID + " = ?",
 				new String[] { String.valueOf(layer.getId()) });
 
 		// 3. close
@@ -179,11 +212,10 @@ public class DBHelper extends SQLiteOpenHelper {
 	public void updateLayerRow(Layer oldLayer, Layer newLayer) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		ContentValues values = new ContentValues();
-		values.put(FIELD_TITLE, newLayer.getTitle());
-		values.put(FIELD_DESC, newLayer.getDesc());
-		values.put(FIELD_KML_STRING, newLayer.getKmlString());
-		values.put(FIELD_DISPLAY, newLayer.getDisplay());
-		db.update(TABLE_LAYERS, values, FIELD_ID + "=?",
+		values.put(LA_FIELD_LAYER_NAME, newLayer.getLayerName());
+		values.put(LA_FIELD_DESC, newLayer.getDesc());
+		values.put(LA_FIELD_DISPLAY, newLayer.getDisplay());
+		db.update(TABLE_LAYERS, values, LA_FIELD_ID + "=?",
 				new String[] { String.valueOf(oldLayer.getId()) });
 		db.close();
 	}// end of updateLayer
@@ -195,7 +227,7 @@ public class DBHelper extends SQLiteOpenHelper {
 		// getAllLayer() 有開關db
 		List<Layer> layers = getAllLayer();
 		for (Layer l : layers) {
-			if (title.equals(l.getTitle())) {
+			if (title.equals(l.getLayerName())) {
 				Log.d("mdb", "Duplicate Title");
 				return true;
 			}
@@ -213,12 +245,44 @@ public class DBHelper extends SQLiteOpenHelper {
 		// return count
 		return count;
 	}// end of getLayerCount
-	
+
 	/**
 	 * @return true if duplicate title
 	 */
-	public boolean getDuplicate(){
+	public boolean getDuplicate() {
 		return duplicate;
 	}// end of getDuplicate
-	// ==============================================================DBControled
-}
+
+	// ======================== PLACE table methods ========================
+	public void addPlaceMark(PlaceMark placeMark) {
+		// 1. get reference to writable DB
+		SQLiteDatabase db = this.getWritableDatabase();
+		// 2. create ContentValues to add key "column"/value
+		ContentValues values = new ContentValues();
+		values.put(PM_FIELD_LAYER_NAME, placeMark.getLayerName());
+		values.put(PM_FIELD_PLACEMARK_NAME, placeMark.getPlaceMarkName());
+		values.put(PM_FIELD_STYLEURL, placeMark.getStyleUrl());
+		values.put(PM_FIELD_COORDINATE, placeMark.getCoordinates());
+		values.put(PM_FIELD_DESC, placeMark.getDesc());
+
+		// 3. insert
+		db.insert(TABLE_LAYERS, null, values);
+		// 4. close
+		db.close();
+	}// end of addPlaceMark
+
+	// ======================== STYLE table methods ========================
+	public void addKmlStyle(KmlStyle kmlStyle) {
+		// 1. get reference to writable DB
+		SQLiteDatabase db = this.getWritableDatabase();
+		// 2. create ContentValues to add key "column"/value
+		ContentValues values = new ContentValues();
+		values.put(ST_FIELD_LAYER_NAME, kmlStyle.getLayerName());
+		values.put(ST_FIELD_STYLE_NAME, kmlStyle.getStyleName());
+		values.put(ST_FIELD_STYLE_CONTENT, kmlStyle.getStyleContent());
+		// 3. insert
+		db.insert(TABLE_LAYERS, null, values);
+		// 4. close
+		db.close();
+	}// end of addPlaceMark
+}// end of DBHelper
