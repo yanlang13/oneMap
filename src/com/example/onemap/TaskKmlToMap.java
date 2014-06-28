@@ -26,9 +26,9 @@ public class TaskKmlToMap extends
 	protected HashMap<String, PolygonOptions> doInBackground(String... params) {
 		polyStyle = new HashMap<String, PolygonOptions>();
 		polyDisplay = new HashMap<String, PolygonOptions>();
-		
+
 		String kmlString = params[0];
-		
+
 		ParseKmlString pks = new ParseKmlString(kmlString);
 
 		// 用for loop，來處理所有的polyStyle
@@ -40,7 +40,7 @@ public class TaskKmlToMap extends
 			po.strokeWidth(pks.getLineWidth(index));
 			String key = pks.getPolyStyleId(index);
 			// TODO colorMode 意思?
-			
+
 			polyStyle.put(key, po);
 		}
 

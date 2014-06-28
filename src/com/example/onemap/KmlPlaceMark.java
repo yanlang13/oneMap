@@ -5,7 +5,7 @@ package com.example.onemap;
  * @author acer
  *
  */
-public class PlaceMark {
+public class KmlPlaceMark {
 	private String id;
 	private String layerName;
 	private String placeMarkName;
@@ -13,10 +13,10 @@ public class PlaceMark {
 	private String coordinates;
 	private String desc;
 
-	public PlaceMark() {
+	public KmlPlaceMark() {
 	}
 
-	public PlaceMark(String layerName, String placeMarkName, String styleUrl,
+	public KmlPlaceMark(String layerName, String placeMarkName, String styleUrl,
 			String coordinates, String desc) {
 		this.layerName = layerName;
 		this.styleUrl = styleUrl;

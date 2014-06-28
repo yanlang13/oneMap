@@ -2,8 +2,6 @@ package com.example.onemap;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -23,23 +21,23 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	// column of Layers
 	private static final String LA_FIELD_ID = "id";
-	private static final String LA_FIELD_LAYER_NAME = "Layer Name"; // String
-	private static final String LA_FIELD_DESC = "Layer Description";// String
+	private static final String LA_FIELD_LAYER_NAME = "LayerName"; // String
+	private static final String LA_FIELD_DESC = "LayerDescription";// String
 	private static final String LA_FIELD_DISPLAY = "Display";// String
 
 	// column of PlaceMarks
 	private static final String PM_FIELD_ID = "id";
-	private static final String PM_FIELD_LAYER_NAME = "Layer Name";// String
-	private static final String PM_FIELD_PLACEMARK_NAME = "PlaceMark Name";// String
+	private static final String PM_FIELD_LAYER_NAME = "LayerName";// String
+	private static final String PM_FIELD_PLACEMARK_NAME = "PlaceMarkName";// String
 	private static final String PM_FIELD_STYLEURL = "StyleUrl"; // String
 	private static final String PM_FIELD_COORDINATE = "Coordinate";// LatLng
-	private static final String PM_FIELD_DESC = "placeMark Description";// HTML
+	private static final String PM_FIELD_DESC = "placeMarkDescription";// HTML
 
 	// column of Styles
 	private static final String ST_FIELD_ID = "id";
-	private static final String ST_FIELD_LAYER_NAME = "Layer Name";// String
-	private static final String ST_FIELD_STYLE_NAME = "Style Name";// String
-	private static final String ST_FIELD_STYLE_CONTENT = "Style Content";// PlygonOptions
+	private static final String ST_FIELD_LAYER_NAME = "LayerName";// String
+	private static final String ST_FIELD_STYLE_NAME = "StyleName";// String
+	private static final String ST_FIELD_STYLE_CONTENT = "StyleContent";// JSONObject
 
 	final static String[] LA_COLUMNS = { LA_FIELD_ID, LA_FIELD_LAYER_NAME,
 			LA_FIELD_DESC, LA_FIELD_DISPLAY };
@@ -86,7 +84,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		// 只有當getRead/Writable...時才會做onCreate
-		Log.d("mdb", "DBHepler onCreate");
+		Log.d("mdb", "=====DBHepler onCreate=====");
 		db.execSQL(INIT_LA_TABLE);
 		db.execSQL(INIT_PM_TABLE);
 		db.execSQL(INIT_ST_TABLE);
@@ -254,25 +252,26 @@ public class DBHelper extends SQLiteOpenHelper {
 	}// end of getDuplicate
 
 	// ======================== PLACE table methods ========================
-	public void addPlaceMark(PlaceMark placeMark) {
+	public void addPlaceMark(KmlPlaceMark kmlPlaceMark) {
 		// 1. get reference to writable DB
 		SQLiteDatabase db = this.getWritableDatabase();
 		// 2. create ContentValues to add key "column"/value
 		ContentValues values = new ContentValues();
-		values.put(PM_FIELD_LAYER_NAME, placeMark.getLayerName());
-		values.put(PM_FIELD_PLACEMARK_NAME, placeMark.getPlaceMarkName());
-		values.put(PM_FIELD_STYLEURL, placeMark.getStyleUrl());
-		values.put(PM_FIELD_COORDINATE, placeMark.getCoordinates());
-		values.put(PM_FIELD_DESC, placeMark.getDesc());
+		values.put(PM_FIELD_LAYER_NAME, kmlPlaceMark.getLayerName());
+		values.put(PM_FIELD_PLACEMARK_NAME, kmlPlaceMark.getPlaceMarkName());
+		values.put(PM_FIELD_STYLEURL, kmlPlaceMark.getStyleUrl());
+		values.put(PM_FIELD_COORDINATE, kmlPlaceMark.getCoordinates());
+		values.put(PM_FIELD_DESC, kmlPlaceMark.getDesc());
 
 		// 3. insert
-		db.insert(TABLE_LAYERS, null, values);
+		db.insert(TABLE_PLACE, null, values);
 		// 4. close
 		db.close();
 	}// end of addPlaceMark
 
 	// ======================== STYLE table methods ========================
 	public void addKmlStyle(KmlStyle kmlStyle) {
+		Log.d("mdb", "=====addkmlstyle=====");
 		// 1. get reference to writable DB
 		SQLiteDatabase db = this.getWritableDatabase();
 		// 2. create ContentValues to add key "column"/value
@@ -281,7 +280,7 @@ public class DBHelper extends SQLiteOpenHelper {
 		values.put(ST_FIELD_STYLE_NAME, kmlStyle.getStyleName());
 		values.put(ST_FIELD_STYLE_CONTENT, kmlStyle.getStyleContent());
 		// 3. insert
-		db.insert(TABLE_LAYERS, null, values);
+		db.insert(TABLE_STYLE, null, values);
 		// 4. close
 		db.close();
 	}// end of addPlaceMark

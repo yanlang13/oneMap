@@ -211,7 +211,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 						map, THE_LAST_CP);
 				setBaseMap(map, position);
 
-				addPolygon();
+				// addPolygon();
 
 			}// end of if
 
@@ -255,7 +255,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			// TODO 判斷是否需要新增到hashMap
 			// 要display的圖才放到showLayers
 			if (l.getDisplay().equals("True")) {
-				showLayers.put(l.getLayerName(), l.getKmlString());
+				// showLayers.put(l.getLayerName(), l.getKmlString());
 			}
 		}// end of for
 
@@ -390,8 +390,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 				Iterator<String> iterator = polyDisplay.keySet().iterator();
 				while (iterator.hasNext()) {
 					String key = (String) iterator.next();
-					 map.addPolygon(polyDisplay.get(key));
-					 Log.d("mdb", "end of while");
+					map.addPolygon(polyDisplay.get(key));
+					Log.d("mdb", "end of while");
 				}
 				progressDialog.dismiss();
 				Log.d("mdb", "=====end of  onPostExecute=====");
@@ -414,6 +414,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			progressDialog.show();
 			progressDialog.setCanceledOnTouchOutside(false);
 		}
+
 		@Override
 		protected void onPostExecute(LatLngBounds bounds) {
 			if (bounds != null) {

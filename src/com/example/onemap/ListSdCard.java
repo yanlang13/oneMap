@@ -3,13 +3,14 @@ package com.example.onemap;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import com.example.onemap.R;
-import com.google.android.gms.drive.internal.l;
-import com.google.android.gms.maps.model.LatLng;
+import java.util.HashMap;
 
+import com.example.onemap.R;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.NavUtils;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewDebug.FlagToString;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -28,12 +30,10 @@ public class ListSdCard extends Activity {
 	private ArrayList<String> folderList;
 	private File file;
 	private ListView lv;
+	private ProgressDialog progressDialog;
 
 	// 處理Directory的排列，KML - DIR (A to Z)
 	private ArrayList<String> KmlList, DirList;
-
-	// 寫kml file的資料到database
-	private DBHelper dbHelper;
 
 	// ============================================================ onCreate ING
 	@Override
@@ -48,7 +48,7 @@ public class ListSdCard extends Activity {
 		folderList = new ArrayList<String>();
 		KmlList = new ArrayList<String>();
 		DirList = new ArrayList<String>();
-		dbHelper = new DBHelper(this);
+		progressDialog = new ProgressDialog(this);
 
 		// TODO 強化進入ExternalStorageDirectory的問題判斷(androdi developer)
 		String root_sd = Environment.getExternalStorageDirectory().toString();
@@ -196,27 +196,32 @@ public class ListSdCard extends Activity {
 				// 如果不是kML FILE就不用新增到資料庫了
 				ParseKmlString pks = new ParseKmlString(kmlString);
 				if (pks.checkKmlFormat()) {
-					Layer layer = new Layer();
-					layer.setLayerName(layerName);
-					layer.setDisplay("True");
-					dbHelper.addLayer(layer);
-
-					// TODO 壓縮KML String再放入S QLite 或是 string的其他問題
-
-					// 沒有重複，就跳回mainActivity
-					if (!dbHelper.getDuplicate()) {
-						startActivity(new Intent(getApplicationContext(),
-								MainActivity.class));
-					}
+					new KmlToDataBase().execute(ListSdCard.this, layerName,
+							kmlString);
 				} else {
-					Toast.makeText(ListSdCard.this,
-							R.string.not_a_correct_format, Toast.LENGTH_SHORT)
-							.show();
+					Toast.makeText(
+							ListSdCard.this,
+							(String) ListSdCard.this.getResources().getText(
+									R.string.not_a_correct_format),
+							Toast.LENGTH_SHORT).show();
 				}
 				Log.d("mdb", "stroage kml file to database");
 			}// end of if
 		}// end of onItemClick
 	}// end of MyOnItemClickListener
+
+	private class KmlToDataBase extends TaskKmlToDataBase {
+		@Override
+		protected void onPreExecute() {
+			progressDialog.show();
+			progressDialog.setCanceledOnTouchOutside(false);
+		}
+
+		@Override
+		protected void onPostExecute(String string) {
+			progressDialog.dismiss();
+		}
+	}
 
 	// ============================================================ class ED
 

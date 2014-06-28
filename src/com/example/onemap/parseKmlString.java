@@ -78,7 +78,6 @@ public class ParseKmlString {
 				// 如果styleMap is not jsonArray 才做styleMap
 				optStyleMap = document.optJSONArray(STYLE_MAP);
 				if (optStyleMap == null) {
-					// TODO 沒有styleMap的話...
 					if (document.optJSONObject(STYLE_MAP) != null) {
 						styleMap = document.getJSONObject(STYLE_MAP);
 					} else {
@@ -118,8 +117,9 @@ public class ParseKmlString {
 	}// end of hasStyleAndFolder
 
 	/**
+	 * 對應到DataBase的ST_FIELD_STYLE_NAME
 	 * @param index
-	 * @return id: kml-Document-Style-id
+	 * @return id: kml-Document-Style-id 
 	 */
 	public String getPolyStyleId(int index) {
 		int length = getStyleLength();
@@ -342,7 +342,6 @@ public class ParseKmlString {
 	 * @return
 	 */
 	public String getPlaceMarkName(int index) {
-		// TODO name可能不是String
 		String folderName;
 		folderName = placeMark.getJSONObject(index).optString(NAME);
 		return folderName;
