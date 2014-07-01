@@ -9,17 +9,17 @@ public class KmlPlaceMark {
 	private String id;
 	private String layerName;
 	private String placeMarkName;
-	private String styleUrl;
+	private String style;
 	private String coordinates;
 	private String desc;
 
 	public KmlPlaceMark() {
 	}
 
-	public KmlPlaceMark(String layerName, String placeMarkName, String styleUrl,
+	public KmlPlaceMark(String layerName, String placeMarkName, String style,
 			String coordinates, String desc) {
 		this.layerName = layerName;
-		this.styleUrl = styleUrl;
+		this.style = style;
 		this.placeMarkName = placeMarkName;
 		this.coordinates = coordinates;
 		this.desc = desc;
@@ -37,8 +37,8 @@ public class KmlPlaceMark {
 		return this.placeMarkName;
 	}
 
-	public String getStyleUrl() {
-		return this.styleUrl;
+	public String getStyle() {
+		return this.style;
 	}
 
 	public String getCoordinates() {
@@ -61,8 +61,8 @@ public class KmlPlaceMark {
 		this.placeMarkName = placeMarkName;
 	}
 
-	public void setStyleUrl(String styleUrl) {
-		this.styleUrl = styleUrl;
+	public void setStyle(String style) {
+		this.style = style;
 	}
 
 	public void setCoordinates(String coordinates) {

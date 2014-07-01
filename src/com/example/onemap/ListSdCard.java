@@ -35,6 +35,8 @@ public class ListSdCard extends Activity {
 	// 處理Directory的排列，KML - DIR (A to Z)
 	private ArrayList<String> KmlList, DirList;
 
+	private DBHelper dbHelper;
+
 	// ============================================================ onCreate ING
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -49,6 +51,8 @@ public class ListSdCard extends Activity {
 		KmlList = new ArrayList<String>();
 		DirList = new ArrayList<String>();
 		progressDialog = new ProgressDialog(this);
+
+		dbHelper = new DBHelper(this);
 
 		// TODO 強化進入ExternalStorageDirectory的問題判斷(androdi developer)
 		String root_sd = Environment.getExternalStorageDirectory().toString();
@@ -103,6 +107,8 @@ public class ListSdCard extends Activity {
 	}// end of getParentPath
 
 	/**
+	 * 處理folder的排序，kml放到最前
+	 * 
 	 * @param directory
 	 *            (folder)
 	 * @param listView
@@ -139,7 +145,7 @@ public class ListSdCard extends Activity {
 	}// end of getAllFilesOfDir
 
 	/**
-	 * clear folderList, DirList, KmlList
+	 * clear folderList, DirList, KmlList，好放入更新後的listView
 	 */
 	private void clearAllList() {
 		folderList.clear();
@@ -193,19 +199,25 @@ public class ListSdCard extends Activity {
 				String layerName = fileName.substring(0, fileName.length() - 4);
 				String kmlString = OtherTools.fileToString(tempFile);
 
-				// 如果不是kML FILE就不用新增到資料庫了
-				ParseKmlString pks = new ParseKmlString(kmlString);
-				if (pks.checkKmlFormat()) {
-					new KmlToDataBase().execute(ListSdCard.this, layerName,
-							kmlString);
-				} else {
-					Toast.makeText(
-							ListSdCard.this,
-							(String) ListSdCard.this.getResources().getText(
-									R.string.not_a_correct_format),
+				// TODO 重複檔名的問題要解決
+				if (dbHelper.duplicateCheck(layerName)) {
+					Toast.makeText(ListSdCard.this, "duplicate layer name",
 							Toast.LENGTH_SHORT).show();
+				} else {// 如果沒有重複layer name
+					// 如果不是kML FILE就不用新增到資料庫了
+					ParseKmlString pks = new ParseKmlString(kmlString);
+					if (pks.checkKmlFormat()) {
+						new KmlToDataBase().execute(ListSdCard.this, layerName,
+								kmlString);
+					} else {
+						Toast.makeText(
+								ListSdCard.this,
+								(String) ListSdCard.this.getResources()
+										.getText(R.string.not_a_correct_format),
+								Toast.LENGTH_SHORT).show();
+					}
+					Log.d("mdb", "stroage kml file to database");
 				}
-				Log.d("mdb", "stroage kml file to database");
 			}// end of if
 		}// end of onItemClick
 	}// end of MyOnItemClickListener
@@ -215,13 +227,16 @@ public class ListSdCard extends Activity {
 		protected void onPreExecute() {
 			progressDialog.show();
 			progressDialog.setCanceledOnTouchOutside(false);
-		}
+		}// end of onPreExecute
 
 		@Override
 		protected void onPostExecute(String string) {
-			progressDialog.dismiss();
-		}
-	}
+			if (progressDialog.isShowing()) {
+				progressDialog.dismiss();
+			}
+			startActivity(new Intent(ListSdCard.this, MainActivity.class));
+		}// end of onPostExecute
+	}// end of KmlToDataBase
 
 	// ============================================================ class ED
 

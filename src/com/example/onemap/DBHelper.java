@@ -1,7 +1,14 @@
 package com.example.onemap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+
+import com.google.android.gms.drive.internal.p;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.PolygonOptions;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -29,25 +36,16 @@ public class DBHelper extends SQLiteOpenHelper {
 	private static final String PM_FIELD_ID = "id";
 	private static final String PM_FIELD_LAYER_NAME = "LayerName";// String
 	private static final String PM_FIELD_PLACEMARK_NAME = "PlaceMarkName";// String
-	private static final String PM_FIELD_STYLEURL = "StyleUrl"; // String
+	private static final String PM_FIELD_STYLE = "Style"; // String
 	private static final String PM_FIELD_COORDINATE = "Coordinate";// LatLng
-	private static final String PM_FIELD_DESC = "placeMarkDescription";// HTML
-
-	// column of Styles
-	private static final String ST_FIELD_ID = "id";
-	private static final String ST_FIELD_LAYER_NAME = "LayerName";// String
-	private static final String ST_FIELD_STYLE_NAME = "StyleName";// String
-	private static final String ST_FIELD_STYLE_CONTENT = "StyleContent";// JSONObject
+	private static final String PM_FIELD_DESC = "PlaceMarkDescription";// HTML
 
 	final static String[] LA_COLUMNS = { LA_FIELD_ID, LA_FIELD_LAYER_NAME,
 			LA_FIELD_DESC, LA_FIELD_DISPLAY };
 
 	final static String[] PM_COLUMNS = { PM_FIELD_ID, PM_FIELD_LAYER_NAME,
-			PM_FIELD_PLACEMARK_NAME, PM_FIELD_STYLEURL, PM_FIELD_COORDINATE,
+			PM_FIELD_PLACEMARK_NAME, PM_FIELD_STYLE, PM_FIELD_COORDINATE,
 			PM_FIELD_DESC };
-
-	final static String[] ST_COLUMNS = { ST_FIELD_ID, ST_FIELD_LAYER_NAME,
-			ST_FIELD_STYLE_NAME, ST_FIELD_STYLE_CONTENT };
 
 	final static String INIT_LA_TABLE = "CREATE TABLE IF NOT EXISTS "
 			+ TABLE_LAYERS + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -57,13 +55,8 @@ public class DBHelper extends SQLiteOpenHelper {
 	final static String INIT_PM_TABLE = "CREATE TABLE IF NOT EXISTS "
 			+ TABLE_PLACE + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
 			+ PM_FIELD_LAYER_NAME + " TEXT, " + PM_FIELD_PLACEMARK_NAME
-			+ " TEXT, " + PM_FIELD_STYLEURL + " TEXT, " + PM_FIELD_COORDINATE
+			+ " TEXT, " + PM_FIELD_STYLE + " TEXT, " + PM_FIELD_COORDINATE
 			+ " TEXT, " + PM_FIELD_DESC + " TEXT);";
-
-	final static String INIT_ST_TABLE = "CREATE TABLE IF NOT EXISTS "
-			+ TABLE_STYLE + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
-			+ ST_FIELD_LAYER_NAME + " TEXT, " + ST_FIELD_STYLE_NAME + " TEXT, "
-			+ ST_FIELD_STYLE_CONTENT + " TEXT);";
 
 	final static String DROP_LA_TABLE = "DROP TABLE IF EXISTS " + TABLE_LAYERS;
 	final static String DROP_PM_TABLE = "DROP TABLE IF EXISTS " + TABLE_PLACE;
@@ -87,7 +80,6 @@ public class DBHelper extends SQLiteOpenHelper {
 		Log.d("mdb", "=====DBHepler onCreate=====");
 		db.execSQL(INIT_LA_TABLE);
 		db.execSQL(INIT_PM_TABLE);
-		db.execSQL(INIT_ST_TABLE);
 	}
 
 	@Override
@@ -252,6 +244,10 @@ public class DBHelper extends SQLiteOpenHelper {
 	}// end of getDuplicate
 
 	// ======================== PLACE table methods ========================
+	/**
+	 * 
+	 * @param kmlPlaceMark
+	 */
 	public void addPlaceMark(KmlPlaceMark kmlPlaceMark) {
 		// 1. get reference to writable DB
 		SQLiteDatabase db = this.getWritableDatabase();
@@ -259,7 +255,7 @@ public class DBHelper extends SQLiteOpenHelper {
 		ContentValues values = new ContentValues();
 		values.put(PM_FIELD_LAYER_NAME, kmlPlaceMark.getLayerName());
 		values.put(PM_FIELD_PLACEMARK_NAME, kmlPlaceMark.getPlaceMarkName());
-		values.put(PM_FIELD_STYLEURL, kmlPlaceMark.getStyleUrl());
+		values.put(PM_FIELD_STYLE, kmlPlaceMark.getStyle());
 		values.put(PM_FIELD_COORDINATE, kmlPlaceMark.getCoordinates());
 		values.put(PM_FIELD_DESC, kmlPlaceMark.getDesc());
 
@@ -269,19 +265,77 @@ public class DBHelper extends SQLiteOpenHelper {
 		db.close();
 	}// end of addPlaceMark
 
-	// ======================== STYLE table methods ========================
-	public void addKmlStyle(KmlStyle kmlStyle) {
-		Log.d("mdb", "=====addkmlstyle=====");
-		// 1. get reference to writable DB
+	/**
+	 * 取得placeMark-styleContent的內容，然後放入polygon再放入polygonOptions
+	 * 
+	 * @param layerName
+	 * @return
+	 */
+	public HashMap<String, PolygonOptions> getPolygon(String layerName) {
+		HashMap<String, PolygonOptions> pos = new HashMap<String, PolygonOptions>();
+
 		SQLiteDatabase db = this.getWritableDatabase();
-		// 2. create ContentValues to add key "column"/value
-		ContentValues values = new ContentValues();
-		values.put(ST_FIELD_LAYER_NAME, kmlStyle.getLayerName());
-		values.put(ST_FIELD_STYLE_NAME, kmlStyle.getStyleName());
-		values.put(ST_FIELD_STYLE_CONTENT, kmlStyle.getStyleContent());
-		// 3. insert
-		db.insert(TABLE_STYLE, null, values);
-		// 4. close
+		Cursor cursor = db.query(TABLE_PLACE, // a. table
+				PM_COLUMNS, // b. column names
+				PM_FIELD_LAYER_NAME + "=?", // c. selections
+				new String[] { layerName }, // d. selections args
+				null, // e. group by
+				null, // f. having
+				null, // g. order by
+				null); // h. limit
+
+		// 3. go over each row, build Layer and add it to list
+
+		try {
+			if (cursor.moveToFirst()) {
+				do {
+					String key = layerName + "_" + cursor.getString(2);
+
+					JSONObject style = new JSONObject(cursor.getString(3));
+					int polyColor = style.getInt("polyColor");
+					int lineColor = style.getInt("lineColor");
+					int lineWidth = style.getInt("lineWidth");
+
+					ArrayList<LatLng> latLngs = transCoorStringToLatLngs(cursor
+							.getString(4));
+					
+					PolygonOptions po = new PolygonOptions();
+					po.fillColor(polyColor);
+					po.strokeColor(lineColor);
+					po.strokeWidth(lineWidth);
+					po.addAll(latLngs);
+					pos.put(key, po);
+
+				} while (cursor.moveToNext());
+			}
+		} catch (IllegalStateException e) {
+			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
+		}
 		db.close();
-	}// end of addPlaceMark
+		return pos;
+	}// end of getPolygonStyle
+
+	private ArrayList<LatLng> transCoorStringToLatLngs(String coordinates) {
+		// 取出的kmlString轉為list，split用 | 分隔使用的分隔符號
+		List<String> listStringCoordinates = new ArrayList<String>(
+				Arrays.asList(coordinates.split(",| ")));
+
+		ArrayList<LatLng> latLngs = new ArrayList<LatLng>();
+
+		int length = listStringCoordinates.size();
+
+		for (int i = 0; i < length - 1; i += 3) {
+			// 取kmlString的coordinates 轉double
+			// d1為longitude
+			double longitude = Double.valueOf(listStringCoordinates.get(i));
+			// d2為latitude
+			double latitude = Double.valueOf(listStringCoordinates.get(i + 1));
+			LatLng latLng = new LatLng(latitude, longitude);
+
+			// 放LatLng到ArrayList
+			latLngs.add(latLng);
+		}
+		return latLngs;
+	}
+
 }// end of DBHelper

@@ -28,6 +28,7 @@ public class ParseKmlString {
 	private static final String STYLE = "Style";
 	private static final String ID = "id";
 	private static final String POLYSTYLE = "PolyStyle";
+	private static final String COLOR_MODE = "colorMode";
 	private static final String COLOR = "color";
 	private static final String NO_COLOR = "no color";
 	private static final String LINESTYLE = "LineStyle";
@@ -118,8 +119,9 @@ public class ParseKmlString {
 
 	/**
 	 * 對應到DataBase的ST_FIELD_STYLE_NAME
+	 * 
 	 * @param index
-	 * @return id: kml-Document-Style-id 
+	 * @return id: kml-Document-Style-id
 	 */
 	public String getPolyStyleId(int index) {
 		int length = getStyleLength();
@@ -136,7 +138,7 @@ public class ParseKmlString {
 	 */
 	public int getPolyColor(int index) {
 		String abgr;
-		if (styleMapIsJSONObject) {
+		if (styleIsJSONObject) {
 			JSONObject polyStyle = style.getJSONObject(POLYSTYLE);
 			abgr = polyStyle.getString(COLOR);
 		} else {
@@ -147,7 +149,18 @@ public class ParseKmlString {
 
 		return kmlColorToARGB(abgr);
 	}// end of getPoltColor
-
+	
+	
+	public String getColorMode(int index){
+		String colorMode = null;
+		if (styleIsJSONObject) {
+			JSONObject polyStyle = style.getJSONObject(POLYSTYLE);
+			colorMode = polyStyle.optString(COLOR_MODE);
+		}
+		return colorMode;
+		
+	}// end of getColorMode
+	
 	/**
 	 * @param index
 	 * @return ARGB color
@@ -324,6 +337,27 @@ public class ParseKmlString {
 		}
 		return latLngs;
 	}// end of getCoordinates
+
+	/**
+	 * 只取出string，未刪除z值
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public String getCoordinateString(int index) {
+		String coordinatesString;
+		if (placeMark.getJSONObject(index).optJSONObject(MULTI_GEOMETRY) == null) {
+			coordinatesString = placeMark.getJSONObject(index)
+					.getJSONObject(POLYGON).getJSONObject(OUTER_BOUNDARY_IS)
+					.getJSONObject(LINEAR_RING).getString(COORDINATES);
+		} else {
+			coordinatesString = placeMark.getJSONObject(index)
+					.getJSONObject(MULTI_GEOMETRY).getJSONObject(POLYGON)
+					.getJSONObject(OUTER_BOUNDARY_IS)
+					.getJSONObject(LINEAR_RING).getString(COORDINATES);
+		}
+		return coordinatesString;
+	}
 
 	/**
 	 * 用來連接LatLng和polyStyle，getSylteUrl後必做transToStyleUrl

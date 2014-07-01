@@ -74,9 +74,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 	private DefaultSettings ds; // 存取各種基本設定
 
-	private DBHelper dbHelper;
-	private HashMap<String, String> showLayers; // get from database
-
 	// ====================================================================Declared
 
 	@Override
@@ -85,8 +82,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		ds = new DefaultSettings(MainActivity.this);
 		setContentView(R.layout.single_maps);
 		progressDialog = new ProgressDialog(this);
-		dbHelper = new DBHelper(this);
-		showLayers = new HashMap<String, String>();
 
 		// MainActivity.this.deleteDatabase("oneMaps.db");
 		setLeftDrawer();
@@ -212,6 +207,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 				setBaseMap(map, position);
 
 				// addPolygon();
+				new GetPolygonFromDB().execute(MainActivity.this);
 
 			}// end of if
 
@@ -246,56 +242,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			Log.d("mdg", "MainActivity class" + "googleMap Error");
 		}
 	}// end of setMapLayoutType
-
-	private void addPolygon() {
-		// 抓database裡面的layers
-		List<Layer> layers = dbHelper.getAllLayer();
-
-		for (Layer l : layers) {
-			// TODO 判斷是否需要新增到hashMap
-			// 要display的圖才放到showLayers
-			if (l.getDisplay().equals("True")) {
-				// showLayers.put(l.getLayerName(), l.getKmlString());
-			}
-		}// end of for
-
-		// 開啟DATABASE把DISPLAY TRUE的KML放入地圖
-		if (!showLayers.isEmpty()) {
-			// keySet()是傳回key的set，iterator則用來讀取collections
-			Iterator<String> iterator = showLayers.keySet().iterator();
-			while (iterator.hasNext()) {
-				String keyTitle = (String) iterator.next();
-				String kmlString = showLayers.get(keyTitle);
-
-				// TODO 判斷那些要重新製作polygonOptions，那些不用
-				Log.d("mdb", "key title: " + keyTitle);
-
-				// TODO try catch 避免無法讀取kml file而造成的MAINACTIVITY開啟錯誤
-				try {
-					new KmlToMapTask().execute(kmlString);
-				} catch (NullPointerException e) {
-					Toast.makeText(MainActivity.this,
-							"The " + keyTitle + ".kml can't be parsed.",
-							Toast.LENGTH_LONG).show();
-					Log.d("mdb", e.toString());
-					dbHelper.deleteLayerRow(dbHelper.getLayer(keyTitle));
-				} catch (JSONException e) {
-					Toast.makeText(MainActivity.this,
-							"The " + keyTitle + ".kml can't be parsed.",
-							Toast.LENGTH_LONG).show();
-					Log.d("mdb", e.toString());
-					dbHelper.deleteLayerRow(dbHelper.getLayer(keyTitle));
-				}// end of try
-			}// end of while
-		} else {
-			Toast.makeText(
-					getApplication(),
-					"add layers from "
-							+ (String) this.getResources().getText(
-									R.string.layers_manage), Toast.LENGTH_SHORT)
-					.show();
-		}// end of if
-	}// end of addPolygon
 
 	// ====================================================================onResumed
 
@@ -375,33 +321,30 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 	// ====================================================================Classing
 
-	private class KmlToMapTask extends TaskKmlToMap {
+	private class GetPolygonFromDB extends DataBaseToMap {
 		@Override
 		protected void onPreExecute() {
 			progressDialog.show();
 			progressDialog.setCanceledOnTouchOutside(false);
-		}// end of onPreExecute
+		}
 
 		@Override
-		protected void onPostExecute(HashMap<String, PolygonOptions> polyDisplay) {
-			// 將layers放到地圖上
-			if (!polyDisplay.isEmpty()) {
-				Log.d("mdb", "=====start onPostExecute=====");
-				Iterator<String> iterator = polyDisplay.keySet().iterator();
+		protected void onPostExecute(HashMap<String, PolygonOptions> pos) {
+			Iterator<String> iterator = pos.keySet().iterator();
+			try {
 				while (iterator.hasNext()) {
-					String key = (String) iterator.next();
-					map.addPolygon(polyDisplay.get(key));
-					Log.d("mdb", "end of while");
-				}
-				progressDialog.dismiss();
-				Log.d("mdb", "=====end of  onPostExecute=====");
-			} else {
-				Toast.makeText(MainActivity.this, "wrong kml format",
-						Toast.LENGTH_SHORT).show();
-				progressDialog.dismiss();
+					String keyTitle = (String) iterator.next();
+					PolygonOptions po = pos.get(keyTitle);
+					map.addPolygon(po);
+				}// end of while
+			} catch (StackOverflowError e) {
+				Log.d("mdb", e.toString());
 			}
-		}// end of onPostExecute
-	}// end of KmlToMapTask
+			if (progressDialog.isShowing()) {
+				progressDialog.dismiss();
+			}// end of if
+		}
+	}// end of GetPolygonFromDB
 
 	/**
 	 * 取得地址的座標，然後moveCameraTo
@@ -423,11 +366,15 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 				LatLng position = bounds.getCenter();
 				map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
 				mapTools.displayBoundMarker(map, position, snippet);
-				progressDialog.dismiss();
+				if (progressDialog.isShowing()) {
+					progressDialog.dismiss();
+				}
 			} else {
 				Toast.makeText(MainActivity.this, "wrong address format",
 						Toast.LENGTH_SHORT).show();
-				progressDialog.dismiss();
+				if (progressDialog.isShowing()) {
+					progressDialog.dismiss();
+				}
 			}
 		}// end of onPostExecute
 	}// end of GetAddressTask

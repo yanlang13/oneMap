@@ -1,12 +1,9 @@
 package com.example.onemap;
 
-import java.util.List;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.LatLngCreator;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 public class TaskKmlToDataBase extends AsyncTask<Object, Void, String> {
 	private final static String YES = "YES";
@@ -14,15 +11,13 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, String> {
 
 	@Override
 	protected String doInBackground(Object... params) {
-		Log.d("mdb", "===== do in TaskKmlToDataBase=====");
-		// TODO parsing KML to database
 		Context context = (Context) params[0];
 		String layerName = (String) params[1];
 		String kmlString = (String) params[2];
 
 		ParseKmlString pks = new ParseKmlString(kmlString);
 		dbHelper = new DBHelper(context);
-		
+
 		// TABLE_LAYERS
 		Layer layer = new Layer();
 
@@ -35,31 +30,7 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, String> {
 		// LA_FIELD_DISPLAY
 		layer.setDisplay(YES);
 		dbHelper.addLayer(layer);
-		
-		
-		Log.d("mdb", "===== kmlStyle =====");
-		// TABLE_STYLE
-		KmlStyle ks = new KmlStyle();
-		for (int index = 0; index < pks.getStyleLength(); index++) {
-			// ST_FIELD_LAYER_NAME
-			ks.setLayerName(layerName);
 
-			// ST_FIELD_STYLE_NAME
-			String styleName = pks.getPolyStyleId(index);
-			ks.setStyleName(styleName);
-
-			// ST_FIELD_STYLE_CONTENT
-			JSONObject styleContent = new JSONObject();
-			PolygonOptions po = new PolygonOptions();
-			po.fillColor(pks.getPolyColor(index));
-			po.strokeColor(pks.getLineColor(index));
-			po.strokeWidth(pks.getLineWidth(index));
-			styleContent.put(styleName, po);
-			ks.setStyleContent(styleContent.toString());
-			dbHelper.addKmlStyle(ks);
-		}
-
-		Log.d("mdb", "===== kmlPlaceMark =====");
 		KmlPlaceMark kpm = new KmlPlaceMark();
 		for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
 
@@ -70,23 +41,32 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, String> {
 			String placeMarkName = pks.getPlaceMarkName(index);
 			kpm.setPlaceMarkName(placeMarkName);
 
-			// PM_FIELD_STYLEURL
+			// PM_FIELD_STYLE
 			String placeMarkStyleUrl = pks.getStyleUrl(index);
 			String styleUrl = pks.transToStyleUrl(placeMarkStyleUrl);
-			kpm.setStyleUrl(styleUrl);
 
+			for (int index1 = 0; index1 < pks.getStyleLength(); index1++) {
+				if (styleUrl.equals(pks.getPolyStyleId(index1))) {
+					JSONObject styleContent = new JSONObject();
+					styleContent.put("polyColor", pks.getPolyColor(index1));
+					styleContent.put("colorMode", pks.getColorMode(index1));
+					styleContent.put("lineColor", pks.getLineColor(index1));
+					styleContent.put("lineWidth", pks.getLineWidth(index1));
+					kpm.setStyle(styleContent.toString());
+				}
+			}
+			
 			// PM_FIELD_COORDINATE
-			List<LatLng> coordinates = pks.getCoordinates(index);
-			JSONObject coordinate = new JSONObject();
-			coordinate.put(placeMarkName, coordinates);
-			kpm.setCoordinates(coordinate.toString());
-
+			kpm.setCoordinates(pks.getCoordinateString(index));
 			// PM_FIELD_DESC
-			kpm.setDesc("test");	
+			kpm.setDesc("test");
 			dbHelper.addPlaceMark(kpm);
 		}
 
 		return "end";
 	}
 
+	class test extends LatLngCreator {
+
+	}
 }
