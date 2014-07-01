@@ -330,16 +330,25 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		@Override
 		protected void onPostExecute(HashMap<String, PolygonOptions> pos) {
-			Iterator<String> iterator = pos.keySet().iterator();
-			try {
-				while (iterator.hasNext()) {
-					String keyTitle = (String) iterator.next();
-					PolygonOptions po = pos.get(keyTitle);
-					map.addPolygon(po);
-				}// end of while
-			} catch (StackOverflowError e) {
-				Log.d("mdb", e.toString());
+			Log.d("mdb", "pos size: "+pos.size());
+			
+			
+			for(String key: pos.keySet()){
+				Log.d("mdb", "key:"+ key);
+//				PolygonOptions po = pos.get(key);
+//				map.addPolygon(po);
 			}
+			
+//			Iterator<String> iterator = pos.keySet().iterator();
+//			try {
+//				while (iterator.hasNext()) {
+//					String keyTitle = (String) iterator.next();
+//					PolygonOptions po = pos.get(keyTitle);
+//					map.addPolygon(po);
+//				}// end of while
+//			} catch (StackOverflowError e) {
+//				Log.d("mdb", e.toString());
+//			}
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}// end of if
