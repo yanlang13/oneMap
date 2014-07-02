@@ -1,15 +1,12 @@
 package com.example.onemap;
 
-import java.net.ContentHandler;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import com.google.android.gms.maps.model.PolygonOptions;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 public class DataBaseToMap extends
 		AsyncTask<Context, Void, HashMap<String, PolygonOptions>> {

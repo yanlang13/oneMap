@@ -6,13 +6,18 @@ import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import org.simpleframework.xml.stream.Position;
+
 import com.example.onemap.MapTools;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.drive.internal.l;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -23,6 +28,8 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -33,8 +40,12 @@ import android.content.res.Configuration;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 import android.provider.Settings;
 import android.sax.EndElementListener;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -74,6 +85,10 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 	private DefaultSettings ds; // 存取各種基本設定
 
+	private Handler toMapHandler;
+
+	HashMap<String, PolygonOptions> allPO;
+
 	// ====================================================================Declared
 
 	@Override
@@ -85,6 +100,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		// MainActivity.this.deleteDatabase("oneMaps.db");
 		setLeftDrawer();
+
+		allPO = new HashMap<String, PolygonOptions>();
 
 	}// end of onCreate
 
@@ -207,13 +224,19 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 				setBaseMap(map, position);
 
 				// addPolygon();
-				new GetPolygonFromDB().execute(MainActivity.this);
 
+				// TODO運用 SIZE判斷有無新增POLYGON
+
+				if (allPO.size() == 0) {
+					Log.d("mdb", "add polygon");
+					new GetPolygonFromDB().execute(MainActivity.this);
+				}
 			}// end of if
 
 			map.setMyLocationEnabled(true);
 			map.setOnMyLocationButtonClickListener(this);
-		}
+
+		}// end of if
 	}// end of setUpSingleMapIfNeeded
 
 	private void setUpLocationClientIfNeeded() { // call from onResume
@@ -330,28 +353,21 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		@Override
 		protected void onPostExecute(HashMap<String, PolygonOptions> pos) {
-			Log.d("mdb", "pos size: "+pos.size());
-			
-			
-			for(String key: pos.keySet()){
-				Log.d("mdb", "key:"+ key);
-//				PolygonOptions po = pos.get(key);
-//				map.addPolygon(po);
+			// TODO 究竟是每個task的stack大小、LOOP的stack大小、Latlng大小的問題?
+			Log.d("mdb", "pos.size():" + pos.size());
+
+			Iterator<String> iterator = pos.keySet().iterator();
+
+			while (iterator.hasNext()) {
+				String key = (String) iterator.next();
+				allPO.put(key, pos.get(key));
 			}
-			
-//			Iterator<String> iterator = pos.keySet().iterator();
-//			try {
-//				while (iterator.hasNext()) {
-//					String keyTitle = (String) iterator.next();
-//					PolygonOptions po = pos.get(keyTitle);
-//					map.addPolygon(po);
-//				}// end of while
-//			} catch (StackOverflowError e) {
-//				Log.d("mdb", e.toString());
-//			}
+
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}// end of if
+
+			toMapHandler.sendEmptyMessage(0);
 		}
 	}// end of GetPolygonFromDB
 
