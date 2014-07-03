@@ -4,6 +4,7 @@ import com.google.android.gms.maps.model.LatLngCreator;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 public class TaskKmlToDataBase extends AsyncTask<Object, Void, String> {
 	private final static String YES = "YES";
@@ -32,8 +33,46 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, String> {
 		dbHelper.addLayer(layer);
 
 		KmlPlaceMark kpm = new KmlPlaceMark();
-		for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
 
+		// kml只有一個資料的話
+		if (pks.getPlaceMarkLength() == 0) {
+			Log.d("mdb", "pks.getPlaceMarkLength() == 0");
+			int index = 0;
+			// PM_FIELD_LAYER_NAME
+			kpm.setLayerName(layerName);
+			Log.d("mdb", "end of PM_FIELD_LAYER_NAME");
+
+			// PM_FIELD_PLACEMARK_NAME
+			String placeMarkName = pks.getPlaceMarkName(index);
+			kpm.setPlaceMarkName(placeMarkName);
+
+			Log.d("mdb", "end of PM_FIELD_PLACEMARK_NAME");
+			// PM_FIELD_STYLE
+			String placeMarkStyleUrl = pks.getStyleUrl(index);
+			String styleUrl = pks.transToStyleUrl(placeMarkStyleUrl);
+
+			for (int index1 = 0; index1 < pks.getStyleLength(); index1++) {
+				if (styleUrl.equals(pks.getPolyStyleId(index1))) {
+					JSONObject styleContent = new JSONObject();
+					styleContent.put("polyColor", pks.getPolyColor(index1));
+					styleContent.put("colorMode", pks.getColorMode(index1));
+					styleContent.put("lineColor", pks.getLineColor(index1));
+					styleContent.put("lineWidth", pks.getLineWidth(index1));
+					kpm.setStyle(styleContent.toString());
+				}
+			}
+			Log.d("mdb", "end of PM_FIELD_STYLE");
+
+			// PM_FIELD_COORDINATE
+			kpm.setCoordinates(pks.getCoordinateString(index));
+			
+			Log.d("mdb", "end of PM_FIELD_COORDINATE");
+			// PM_FIELD_DESC
+			kpm.setDesc("test");
+			dbHelper.addPlaceMark(kpm);
+		}
+
+		for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
 			// PM_FIELD_LAYER_NAME
 			kpm.setLayerName(layerName);
 
@@ -55,7 +94,7 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, String> {
 					kpm.setStyle(styleContent.toString());
 				}
 			}
-			
+
 			// PM_FIELD_COORDINATE
 			kpm.setCoordinates(pks.getCoordinateString(index));
 			// PM_FIELD_DESC

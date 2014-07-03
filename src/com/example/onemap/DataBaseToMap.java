@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.google.android.gms.maps.model.PolygonOptions;
-
 import android.content.Context;
 import android.os.AsyncTask;
 
@@ -16,6 +15,7 @@ public class DataBaseToMap extends
 
 	@Override
 	protected HashMap<String, PolygonOptions> doInBackground(Context... params) {
+
 		Context context = params[0];
 		dbHelper = new DBHelper(context);
 		pos = new HashMap<String, PolygonOptions>();
@@ -27,11 +27,21 @@ public class DataBaseToMap extends
 			// 要display的圖才放到showLayers
 			if (l.getDisplay().equals("YES")) {
 				String layerName = l.getLayerName();
+
+				// 傳回hashMap型態
 				HashMap<String, PolygonOptions> pos1 = dbHelper
 						.getPolygon(layerName);
 				pos.putAll(pos1);
 			}
 		}// end of for
+		
+		if (dbHelper != null) {
+			dbHelper.close();
+		}
 		return pos;
 	}// end of doInBackground
 }// end of DataBaseToMap
+
+
+
+

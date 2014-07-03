@@ -85,9 +85,11 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 	private DefaultSettings ds; // 存取各種基本設定
 
-	private Handler toMapHandler;
+	private static Handler toMapHandler;
 
-	HashMap<String, PolygonOptions> allPO;
+	List<PolygonOptions> bigPO;
+	List<PolygonOptions> medPO;
+	List<PolygonOptions> smaPO;
 
 	// ====================================================================Declared
 
@@ -101,7 +103,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		// MainActivity.this.deleteDatabase("oneMaps.db");
 		setLeftDrawer();
 
-		allPO = new HashMap<String, PolygonOptions>();
+		bigPO = new ArrayList<PolygonOptions>();
+		medPO = new ArrayList<PolygonOptions>();
+		smaPO = new ArrayList<PolygonOptions>();
 
 	}// end of onCreate
 
@@ -225,16 +229,60 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 				// addPolygon();
 
-				// TODO運用 SIZE判斷有無新增POLYGON
-
-				if (allPO.size() == 0) {
-					Log.d("mdb", "add polygon");
-					new GetPolygonFromDB().execute(MainActivity.this);
-				}
+				new GetPolygonFromDB().execute(MainActivity.this);
 			}// end of if
 
 			map.setMyLocationEnabled(true);
 			map.setOnMyLocationButtonClickListener(this);
+
+			// 測試區開始======
+
+			final Runnable addSmallPolygon = new Runnable() {
+				@Override
+				public void run() {
+					try {
+						// map.addPolygon(smaPO.get(2));
+					} catch (StackOverflowError e) {
+						Log.d("mdb", e.toString());
+					}
+					Log.d("mdb", " addSmallPolygon ");
+				}
+			};// end of addSmallPolygon
+
+			final Runnable addMediumPolygon = new Runnable() {
+				@Override
+				public void run() {
+					// for (PolygonOptions po : medPO) {
+					// map.addPolygon(po);
+					try {
+						Thread.sleep(1000);
+						// map.addPolygon(medPO.get(2));
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					Log.d("mdb", " addMediumPolygon ");
+					// }
+				}
+			};// end of addSmallPolygon
+
+			toMapHandler = new Handler() {
+				@Override
+				public void handleMessage(Message msg) {
+					switch (msg.what) {
+					case 0: {
+						// TODO the other thread
+						Log.d("mdb", "end of databaseToMap");
+						toMapHandler.postDelayed(addSmallPolygon, 1000);
+						// toMapHandler.postDelayed(addMediumPolygon, 1000);
+					}
+						;
+						break;
+					default:
+						break;
+					}
+				}
+			}; // end of toMapHandler
 
 		}// end of if
 	}// end of setUpSingleMapIfNeeded
@@ -360,14 +408,25 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
-				allPO.put(key, pos.get(key));
+				int size = pos.get(key).getPoints().size();
+				PolygonOptions options = pos.get(key);
+				Log.d("mdb", ""+options.getPoints().size());
+				map.addPolygon(options);
+				if (size > 1000) {
+					bigPO.add(options);
+
+				} else if (size > 500) {
+					medPO.add(options);
+				} else {
+					smaPO.add(options);
+				}
 			}
 
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}// end of if
 
-			toMapHandler.sendEmptyMessage(0);
+			// toMapHandler.sendEmptyMessage(0);
 		}
 	}// end of GetPolygonFromDB
 

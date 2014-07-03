@@ -16,7 +16,8 @@ import android.util.Log;
 public class ParseKmlString {
 	private JSONObject jsonObject;
 	private JSONObject document;
-	private JSONArray placeMark;
+	private JSONObject placeMark;
+	private JSONArray optPlaceMark;
 	private JSONObject style;
 	private JSONArray optStyle;
 	private JSONObject styleMap;
@@ -51,6 +52,7 @@ public class ParseKmlString {
 	private boolean kmlHasStyleMap = true;
 	private boolean styleIsJSONObject = false;
 	private boolean styleMapIsJSONObject = false;
+	private boolean placeMarkIsJSONObject = false;
 
 	public ParseKmlString(String kmlString) {
 		// github下載的JSONObject
@@ -88,10 +90,18 @@ public class ParseKmlString {
 
 				// KML - document - folder -placeMark or document - placeMark
 				if (document.has(FOLDER)) {
-					placeMark = document.getJSONObject(FOLDER).getJSONArray(
-							PLACEMARK);
+					if (document.getJSONObject(FOLDER).getJSONArray(PLACEMARK) != null) {
+						optPlaceMark = document.getJSONObject(FOLDER)
+								.getJSONArray(PLACEMARK);
+					}
 				} else {
-					placeMark = document.getJSONArray(PLACEMARK);
+					if (document.optJSONArray(PLACEMARK) != null) {
+						optPlaceMark = document.optJSONArray(PLACEMARK);
+					} else {
+						placeMarkIsJSONObject = true;
+						placeMark = document.getJSONObject(PLACEMARK);
+					}
+
 				}
 
 				return true;
@@ -100,7 +110,7 @@ public class ParseKmlString {
 				document = jsonObject.getJSONObject(KML).getJSONObject(FOLDER)
 						.getJSONObject(DOCUMENT);
 
-				placeMark = document.getJSONArray(PLACEMARK);
+				optPlaceMark = document.getJSONArray(PLACEMARK);
 
 				optStyle = document.getJSONArray(STYLE);
 				optStyle = document.optJSONArray(STYLE);
@@ -149,18 +159,17 @@ public class ParseKmlString {
 
 		return kmlColorToARGB(abgr);
 	}// end of getPoltColor
-	
-	
-	public String getColorMode(int index){
+
+	public String getColorMode(int index) {
 		String colorMode = null;
 		if (styleIsJSONObject) {
 			JSONObject polyStyle = style.getJSONObject(POLYSTYLE);
 			colorMode = polyStyle.optString(COLOR_MODE);
 		}
 		return colorMode;
-		
+
 	}// end of getColorMode
-	
+
 	/**
 	 * @param index
 	 * @return ARGB color
@@ -292,10 +301,10 @@ public class ParseKmlString {
 	 * folder-placeMark length從1開始算
 	 */
 	public int getPlaceMarkLength() {
-		if (placeMark == null) {
+		if (optPlaceMark == null) {
 			return 0;
 		}
-		return placeMark.length();
+		return optPlaceMark.length();
 	}// end of getJsonObejctLength
 
 	/**
@@ -304,18 +313,23 @@ public class ParseKmlString {
 	 */
 	public ArrayList<LatLng> getCoordinates(int index) {
 		String coordinates;
-
-		if (placeMark.getJSONObject(index).optJSONObject(MULTI_GEOMETRY) == null) {
-			coordinates = placeMark.getJSONObject(index).getJSONObject(POLYGON)
+		if (placeMarkIsJSONObject) {
+			coordinates = placeMark.getJSONObject(POLYGON)
 					.getJSONObject(OUTER_BOUNDARY_IS)
 					.getJSONObject(LINEAR_RING).getString(COORDINATES);
 		} else {
-			coordinates = placeMark.getJSONObject(index)
-					.getJSONObject(MULTI_GEOMETRY).getJSONObject(POLYGON)
-					.getJSONObject(OUTER_BOUNDARY_IS)
-					.getJSONObject(LINEAR_RING).getString(COORDINATES);
+			if (optPlaceMark.getJSONObject(index).optJSONObject(MULTI_GEOMETRY) == null) {
+				coordinates = optPlaceMark.getJSONObject(index)
+						.getJSONObject(POLYGON)
+						.getJSONObject(OUTER_BOUNDARY_IS)
+						.getJSONObject(LINEAR_RING).getString(COORDINATES);
+			} else {
+				coordinates = optPlaceMark.getJSONObject(index)
+						.getJSONObject(MULTI_GEOMETRY).getJSONObject(POLYGON)
+						.getJSONObject(OUTER_BOUNDARY_IS)
+						.getJSONObject(LINEAR_RING).getString(COORDINATES);
+			}
 		}
-
 		// 取出的kmlString轉為list，split用 | 分隔使用的分隔符號
 		List<String> listStringCoordinates = new ArrayList<String>(
 				Arrays.asList(coordinates.split(",| ")));
@@ -346,15 +360,23 @@ public class ParseKmlString {
 	 */
 	public String getCoordinateString(int index) {
 		String coordinatesString;
-		if (placeMark.getJSONObject(index).optJSONObject(MULTI_GEOMETRY) == null) {
-			coordinatesString = placeMark.getJSONObject(index)
-					.getJSONObject(POLYGON).getJSONObject(OUTER_BOUNDARY_IS)
-					.getJSONObject(LINEAR_RING).getString(COORDINATES);
-		} else {
-			coordinatesString = placeMark.getJSONObject(index)
-					.getJSONObject(MULTI_GEOMETRY).getJSONObject(POLYGON)
+		if (placeMarkIsJSONObject) {
+			coordinatesString = placeMark.getJSONObject(POLYGON)
 					.getJSONObject(OUTER_BOUNDARY_IS)
 					.getJSONObject(LINEAR_RING).getString(COORDINATES);
+		} else {
+
+			if (optPlaceMark.getJSONObject(index).optJSONObject(MULTI_GEOMETRY) == null) {
+				coordinatesString = optPlaceMark.getJSONObject(index)
+						.getJSONObject(POLYGON)
+						.getJSONObject(OUTER_BOUNDARY_IS)
+						.getJSONObject(LINEAR_RING).getString(COORDINATES);
+			} else {
+				coordinatesString = optPlaceMark.getJSONObject(index)
+						.getJSONObject(MULTI_GEOMETRY).getJSONObject(POLYGON)
+						.getJSONObject(OUTER_BOUNDARY_IS)
+						.getJSONObject(LINEAR_RING).getString(COORDINATES);
+			}
 		}
 		return coordinatesString;
 	}
@@ -366,7 +388,12 @@ public class ParseKmlString {
 	 * @return
 	 */
 	public String getStyleUrl(int index) {
-		String styleUrl = placeMark.getJSONObject(index).getString(STYLE_URL);
+		String styleUrl;
+		if (placeMarkIsJSONObject) {
+			styleUrl = placeMark.getString(STYLE_URL);
+		} else {
+			styleUrl = optPlaceMark.getJSONObject(index).getString(STYLE_URL);
+		}
 		return styleUrl.substring(1);
 	}// end of getStleUrl
 
@@ -377,7 +404,11 @@ public class ParseKmlString {
 	 */
 	public String getPlaceMarkName(int index) {
 		String folderName;
-		folderName = placeMark.getJSONObject(index).optString(NAME);
+		if (placeMarkIsJSONObject){
+			folderName = placeMark.optString(NAME);
+		}else{
+		folderName = optPlaceMark.getJSONObject(index).optString(NAME);
+		}
 		return folderName;
 	}
 
