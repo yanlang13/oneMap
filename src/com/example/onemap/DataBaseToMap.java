@@ -34,14 +34,11 @@ public class DataBaseToMap extends
 				pos.putAll(pos1);
 			}
 		}// end of for
-		
+
 		if (dbHelper != null) {
 			dbHelper.close();
 		}
 		return pos;
 	}// end of doInBackground
 }// end of DataBaseToMap
-
-
-
 

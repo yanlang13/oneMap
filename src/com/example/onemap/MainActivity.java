@@ -30,6 +30,8 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import de.micromata.opengis.kml.v_2_2_0.Overlay;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -86,6 +88,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	private DefaultSettings ds; // 存取各種基本設定
 
 	private static Handler toMapHandler;
+	PolygonOptions PolygonToMap;
+
+	List<PolygonOptions> polygonList;
 
 	List<PolygonOptions> bigPO;
 	List<PolygonOptions> medPO;
@@ -102,10 +107,12 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		// MainActivity.this.deleteDatabase("oneMaps.db");
 		setLeftDrawer();
-
 		bigPO = new ArrayList<PolygonOptions>();
 		medPO = new ArrayList<PolygonOptions>();
 		smaPO = new ArrayList<PolygonOptions>();
+
+		PolygonToMap = new PolygonOptions();
+		polygonList = new ArrayList<PolygonOptions>();
 
 	}// end of onCreate
 
@@ -222,20 +229,19 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		if (map == null) {
 			map = ((MapFragment) getFragmentManager().findFragmentById(
 					R.id.single_OneMap)).getMap();
+
 			if (map != null) {
 				mapTools.callTheLastCameraPosition(getApplicationContext(),
 						map, THE_LAST_CP);
 				setBaseMap(map, position);
 
-				// addPolygon();
-
-				new GetPolygonFromDB().execute(MainActivity.this);
 			}// end of if
 
 			map.setMyLocationEnabled(true);
 			map.setOnMyLocationButtonClickListener(this);
 
 			// 測試區開始======
+			new GetPolygonFromDB().execute(MainActivity.this);
 
 			final Runnable addSmallPolygon = new Runnable() {
 				@Override
@@ -384,6 +390,11 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		} else if (id == R.id.action_kml_to_map) {
 			startActivity(new Intent(MainActivity.this, ListSdCard.class));
 			return true;
+		} else if (id == R.id.action_test) {
+			for (PolygonOptions po : polygonList) {
+				map.addPolygon(po);
+			}
+			return true;
 		}// end of if id == ?
 		return super.onOptionsItemSelected(item);
 	}// end of onOptionsItemSelected
@@ -409,18 +420,24 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
 				int size = pos.get(key).getPoints().size();
-				PolygonOptions options = pos.get(key);
-				Log.d("mdb", ""+options.getPoints().size());
-				map.addPolygon(options);
-				if (size > 1000) {
-					bigPO.add(options);
+				polygonList.add(pos.get(key));
 
-				} else if (size > 500) {
-					medPO.add(options);
-				} else {
-					smaPO.add(options);
-				}
+				PolygonOptions options = pos.get(key);
+				// Log.d("mdb", "" + options.getPoints().size());
+				options.strokeWidth(3);
+				PolygonToMap.addAll(options.getPoints());
+
+				// if (size > 1000) {
+				// bigPO.add(options);
+				//
+				// } else if (size > 500) {
+				// medPO.add(options);
+				// } else {
+				// smaPO.add(options);
+				// }
 			}
+
+			pos.clear();
 
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();

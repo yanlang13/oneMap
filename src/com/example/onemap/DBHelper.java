@@ -290,7 +290,7 @@ public class DBHelper extends SQLiteOpenHelper {
 			if (cursor.moveToFirst()) {
 				do {
 					String key = layerName + "_" + cursor.getString(2);
-
+					
 					JSONObject style = new JSONObject(cursor.getString(3));
 					int polyColor = style.getInt("polyColor");
 					int lineColor = style.getInt("lineColor");
@@ -298,7 +298,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
 					ArrayList<LatLng> latLngs = transCoorStringToLatLngs(cursor
 							.getString(4));
-					
+
 					PolygonOptions po = new PolygonOptions();
 					po.fillColor(polyColor);
 					po.strokeColor(lineColor);
@@ -314,7 +314,12 @@ public class DBHelper extends SQLiteOpenHelper {
 		db.close();
 		return pos;
 	}// end of getPolygonStyle
-
+	
+	/**
+	 * copy from ParsingKmlString
+	 * @param coordinates
+	 * @return
+	 */
 	private ArrayList<LatLng> transCoorStringToLatLngs(String coordinates) {
 		// 取出的kmlString轉為list，split用 | 分隔使用的分隔符號
 		List<String> listStringCoordinates = new ArrayList<String>(
