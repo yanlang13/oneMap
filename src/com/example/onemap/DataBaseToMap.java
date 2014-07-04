@@ -28,7 +28,6 @@ public class DataBaseToMap extends
 
 	private DBHelper dbHelper;
 	private HashMap<String, PolygonOptions> pos;
-	private OtherTools otherTools;
 
 	@Override
 	protected HashMap<String, PolygonOptions> doInBackground(Context... params) {
@@ -46,25 +45,22 @@ public class DataBaseToMap extends
 				try {
 					URL url = new URL(styleLink);
 					File file = new File(url.toURI());
+					String jsonString = FileUtils.readFileToString(file);
 
-					 String jsonString = FileUtils.readFileToString(file);
-					 Log.d("mdb", "jsonString: " + jsonString);
+					JSONObject json = new JSONObject(jsonString);
+					json.getString(COLOR_MODE);
 
-					 JSONObject json = new JSONObject(jsonString);
-					 json.getString(COLOR_MODE);
-					
-					 String coordinates = json.getString(COORDINATES);
-					 ArrayList<LatLng> latLngs =
-					 transCoorStringToLatLngs(coordinates);
-					
-					 PolygonOptions po = new PolygonOptions();
-					 po.addAll(latLngs);
-					 po.fillColor(json.getInt(POLY_COLOR));
-					 po.strokeColor(json.getInt(LINE_COLOR));
-					 po.strokeWidth(json.getInt(LINE_WIDTH));
-					
-					 String key = l.getLayerPlaceName();
-					 pos.put(key, po);
+					String coordinates = json.getString(COORDINATES);
+					ArrayList<LatLng> latLngs = transCoorStringToLatLngs(coordinates);
+
+					PolygonOptions po = new PolygonOptions();
+					po.addAll(latLngs);
+					po.fillColor(json.getInt(POLY_COLOR));
+					po.strokeColor(json.getInt(LINE_COLOR));
+					po.strokeWidth(json.getInt(LINE_WIDTH));
+
+					String key = l.getLayerPlaceName();
+					pos.put(key, po);
 
 				} catch (MalformedURLException e) {
 					Log.d("mdb", "DataBaseToMap.class: " + e.toString());

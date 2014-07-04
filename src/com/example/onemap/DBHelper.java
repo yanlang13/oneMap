@@ -2,13 +2,7 @@ package com.example.onemap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-
-import com.google.android.gms.drive.internal.p;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.PolygonOptions;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;

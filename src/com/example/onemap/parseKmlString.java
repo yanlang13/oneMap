@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.google.android.gms.maps.model.LatLng;
-
-import android.R.integer;
 import android.graphics.Color;
-import android.util.Log;
 
 /**
  * 將KML的String轉成JSON formats
@@ -69,7 +66,6 @@ public class ParseKmlString {
 	public boolean checkKmlFormat() {
 		if (jsonObject.has(KML)) {
 			if (jsonObject.getJSONObject(KML).has(DOCUMENT)) {
-				Log.d("mdb", "=====KML-DOCUMENT=====");
 				// KML- document- style
 				document = jsonObject.getJSONObject(KML)
 						.getJSONObject(DOCUMENT);
@@ -91,7 +87,6 @@ public class ParseKmlString {
 
 				// KML - document - folder -placeMark or document - placeMark
 				if (document.has(FOLDER)) {
-					Log.d("mdb", "=====KML-DOCUMENT-FOLDER=====");
 					if (document.getJSONObject(FOLDER).getJSONArray(PLACEMARK) != null) {
 						optPlaceMark = document.getJSONObject(FOLDER)
 								.getJSONArray(PLACEMARK);

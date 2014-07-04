@@ -9,23 +9,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-
-import android.content.Context;
-import android.graphics.Path;
-import android.graphics.drawable.shapes.PathShape;
 import android.os.Environment;
-import android.sax.EndElementListener;
 import android.util.Log;
 
 public class OtherTools {
