@@ -69,6 +69,7 @@ public class ParseKmlString {
 	public boolean checkKmlFormat() {
 		if (jsonObject.has(KML)) {
 			if (jsonObject.getJSONObject(KML).has(DOCUMENT)) {
+				Log.d("mdb", "=====KML-DOCUMENT=====");
 				// KML- document- style
 				document = jsonObject.getJSONObject(KML)
 						.getJSONObject(DOCUMENT);
@@ -90,6 +91,7 @@ public class ParseKmlString {
 
 				// KML - document - folder -placeMark or document - placeMark
 				if (document.has(FOLDER)) {
+					Log.d("mdb", "=====KML-DOCUMENT-FOLDER=====");
 					if (document.getJSONObject(FOLDER).getJSONArray(PLACEMARK) != null) {
 						optPlaceMark = document.getJSONObject(FOLDER)
 								.getJSONArray(PLACEMARK);
@@ -103,7 +105,6 @@ public class ParseKmlString {
 					}
 
 				}
-
 				return true;
 			} else if (jsonObject.getJSONObject(KML).has(FOLDER)) {
 				// KML- folder - document - style, styleMap and placeMark
@@ -404,10 +405,10 @@ public class ParseKmlString {
 	 */
 	public String getPlaceMarkName(int index) {
 		String folderName;
-		if (placeMarkIsJSONObject){
+		if (placeMarkIsJSONObject) {
 			folderName = placeMark.optString(NAME);
-		}else{
-		folderName = optPlaceMark.getJSONObject(index).optString(NAME);
+		} else {
+			folderName = optPlaceMark.getJSONObject(index).optString(NAME);
 		}
 		return folderName;
 	}

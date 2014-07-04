@@ -9,13 +9,23 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+
 import android.content.Context;
+import android.graphics.Path;
+import android.graphics.drawable.shapes.PathShape;
 import android.os.Environment;
+import android.sax.EndElementListener;
 import android.util.Log;
 
 public class OtherTools {
@@ -99,6 +109,12 @@ public class OtherTools {
 
 	}// end of copyDBtoSDcard
 
+	/**
+	 * 壓縮string
+	 * 
+	 * @param string
+	 * @return
+	 */
 	public static String compressString(String string) {
 		String outStr = string;
 		try {
@@ -116,8 +132,14 @@ public class OtherTools {
 			Log.d("mdb", "OtherTools CLAss:" + e.toString());
 		}
 		return outStr;
-	}
+	}// end of compressString(String string)
 
+	/**
+	 * 解壓string
+	 * 
+	 * @param string
+	 * @return
+	 */
 	public static String decompressString(String string) {
 		String outStr = string;
 		try {
@@ -137,5 +159,32 @@ public class OtherTools {
 			Log.d("mdb", "OtherTools CLAss:" + e.toString());
 		}
 		return outStr;
-	}
-}
+	}// end of decompressString(String string)
+
+	/**
+	 * 將jsonObject寫到txt檔案
+	 * 
+	 * @param dirPath
+	 * @param fileName
+	 * @param jsonObject
+	 * @return
+	 */
+	public File writeJsonToFile(File dirPath, String fileName,
+			JSONObject jsonObject) {
+		File txtFile = new File(dirPath, fileName);
+		String styleContnet = jsonObject.toString();
+		FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(txtFile);
+			OutputStreamWriter osw = new OutputStreamWriter(fos);
+			osw.write(styleContnet);
+			osw.close();
+			fos.close();
+		} catch (FileNotFoundException e) {
+			Log.d("mdb", "TaskKmlToDataBase.class" + e.toString());
+		} catch (IOException e) {
+			Log.d("mdb", "TaskKmlToDataBase.class" + e.toString());
+		}
+		return txtFile;
+	}// end of writeJSONObjecToTxt
+}// end of Class OtherTools

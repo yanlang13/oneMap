@@ -230,11 +230,17 @@ public class ListSdCard extends Activity {
 		}// end of onPreExecute
 
 		@Override
-		protected void onPostExecute(String string) {
+		protected void onPostExecute(Boolean worked) {
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}
-			startActivity(new Intent(ListSdCard.this, MainActivity.class));
+			if (worked) {
+				startActivity(new Intent(ListSdCard.this, MainActivity.class));
+			} else {
+				Toast.makeText(getApplicationContext(),
+						"Something wrong in TaskKmlToDatabase ",
+						Toast.LENGTH_SHORT).show();
+			}
 		}// end of onPostExecute
 	}// end of KmlToDataBase
 

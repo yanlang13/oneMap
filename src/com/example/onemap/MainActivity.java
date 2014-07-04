@@ -240,56 +240,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			map.setMyLocationEnabled(true);
 			map.setOnMyLocationButtonClickListener(this);
 
-			// 測試區開始======
-			new GetPolygonFromDB().execute(MainActivity.this);
-
-			final Runnable addSmallPolygon = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						// map.addPolygon(smaPO.get(2));
-					} catch (StackOverflowError e) {
-						Log.d("mdb", e.toString());
-					}
-					Log.d("mdb", " addSmallPolygon ");
-				}
-			};// end of addSmallPolygon
-
-			final Runnable addMediumPolygon = new Runnable() {
-				@Override
-				public void run() {
-					// for (PolygonOptions po : medPO) {
-					// map.addPolygon(po);
-					try {
-						Thread.sleep(1000);
-						// map.addPolygon(medPO.get(2));
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					Log.d("mdb", " addMediumPolygon ");
-					// }
-				}
-			};// end of addSmallPolygon
-
-			toMapHandler = new Handler() {
-				@Override
-				public void handleMessage(Message msg) {
-					switch (msg.what) {
-					case 0: {
-						// TODO the other thread
-						Log.d("mdb", "end of databaseToMap");
-						toMapHandler.postDelayed(addSmallPolygon, 1000);
-						// toMapHandler.postDelayed(addMediumPolygon, 1000);
-					}
-						;
-						break;
-					default:
-						break;
-					}
-				}
-			}; // end of toMapHandler
-
 		}// end of if
 	}// end of setUpSingleMapIfNeeded
 
@@ -391,9 +341,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			startActivity(new Intent(MainActivity.this, ListSdCard.class));
 			return true;
 		} else if (id == R.id.action_test) {
-			for (PolygonOptions po : polygonList) {
-				map.addPolygon(po);
-			}
+			new GetPolygonFromDB().execute(getApplicationContext());
 			return true;
 		}// end of if id == ?
 		return super.onOptionsItemSelected(item);
@@ -420,21 +368,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
 				int size = pos.get(key).getPoints().size();
-				polygonList.add(pos.get(key));
-
-				PolygonOptions options = pos.get(key);
-				// Log.d("mdb", "" + options.getPoints().size());
-				options.strokeWidth(3);
-				PolygonToMap.addAll(options.getPoints());
-
-				// if (size > 1000) {
-				// bigPO.add(options);
-				//
-				// } else if (size > 500) {
-				// medPO.add(options);
-				// } else {
-				// smaPO.add(options);
-				// }
+				map.addPolygon(pos.get(key));
 			}
 
 			pos.clear();

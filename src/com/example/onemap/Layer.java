@@ -2,33 +2,37 @@ package com.example.onemap;
 
 public class Layer {
 	private String id;
-	private String layerName;
+	private String layerPlaceName;
 	private String lDesc;
 	private String display;
+	private String pDesc;
+	private String styleLink;
 
 	public Layer() {
 	}
 
-	public Layer(String LayerName, String desciption, String display) {
+	public Layer(String LayerPlaceName, String desciption, String display,
+			String pDesc, String styleLink) {
 		super();
-		this.layerName = LayerName;
+		this.layerPlaceName = LayerPlaceName;
 		this.lDesc = desciption;
 		this.display = display;
+		this.pDesc = pDesc;
+		this.styleLink = styleLink;
 	}
 
-	@Override
 	public String toString() {
-		return String.format(
-				"[Id: %s,Title: %s, Description: %s, Display: %s]", id, layerName,
-				lDesc, display);
+		return String
+				.format("[Id: %s,Title: %s, LDesc: %s, Display: %s, PDesc: %s, StyleLink: %s ]",
+						id, layerPlaceName, lDesc, display, pDesc, styleLink);
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public String getLayerName() {
-		return layerName;
+	public String getLayerPlaceName() {
+		return layerPlaceName;
 	}
 
 	public String getDesc() {
@@ -39,6 +43,14 @@ public class Layer {
 		return display;
 	}
 
+	public String getPDesc() {
+		return pDesc;
+	}
+
+	public String getStyleLink() {
+		return styleLink;
+	}
+
 	/**
 	 * 不要自己設id，dbHepler會幫忙自動設定
 	 */
@@ -46,15 +58,23 @@ public class Layer {
 		this.id = id;
 	}
 
-	public void setLayerName(String layerName) {
-		this.layerName = layerName;
+	public void setLayerPlaceName(String layerPlaceName) {
+		this.layerPlaceName = layerPlaceName;
 	}
 
-	public void setDesc(String description) {
+	public void setlDesc(String description) {
 		this.lDesc = description;
 	}
 
 	public void setDisplay(String display) {
 		this.display = display;
+	}
+
+	public void setPDesc(String pDesc) {
+		this.pDesc = pDesc;
+	}
+
+	public void setStyleLink(String styleLink) {
+		this.styleLink = styleLink;
 	}
 }
