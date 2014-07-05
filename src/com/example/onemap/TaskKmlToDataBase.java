@@ -114,16 +114,28 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 					if (colorMode.equals("random")) {
 						styleContent.put("colorMode", pks.getColorMode(index1));
 						
-						//起始的第一個顏色
+						//TODO 還有些問題，色彩起點不符原本的。另外會有白色不透明(結束點)
+						// 起始的第一個顏色
 						int startPolyColor = pks.getPolyColor(index1);
-						
-						//總共的顏色數量
-						int colorNumber= pks.getPlaceMarkLength();
-						
-						//最後一個顏色 
-						
-						String newPolyColor;
-//						styleContent.put("polyColor", polyColor);
+						Log.d("mdb", "startPolyColor: " + startPolyColor);
+
+						// 總共的顏色數量
+						int colorNumber = pks.getPlaceMarkLength();
+						Log.d("mdb",
+								"pks.getPlaceMarkLength(): "
+										+ pks.getPlaceMarkLength());
+
+						// 最後一個顏色()
+						int endPolyColor = OtherTools
+								.kmlColorToARGB("82000000");
+						Log.d("mdb", "OtherTools.kmlColorToARGB(82000000)"
+								+ OtherTools.kmlColorToARGB("82000000"));
+
+						int newPolyColor = startPolyColor
+								- ((startPolyColor - endPolyColor) / colorNumber)
+								* (index + 1);
+
+						styleContent.put("polyColor", newPolyColor);
 					} else {
 						styleContent.put("polyColor", pks.getPolyColor(index1));
 						styleContent.put("colorMode", pks.getColorMode(index1));
