@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import com.google.android.gms.maps.model.LatLng;
 import android.graphics.Color;
+import android.util.Log;
 
 /**
  * 將KML的String轉成JSON formats
@@ -161,9 +162,16 @@ public class ParseKmlString {
 		if (styleIsJSONObject) {
 			JSONObject polyStyle = style.getJSONObject(POLYSTYLE);
 			colorMode = polyStyle.optString(COLOR_MODE);
+		} else {
+			JSONObject polyStyle = optStyle.getJSONObject(index).getJSONObject(
+					POLYSTYLE);
+			colorMode = polyStyle.optString(COLOR_MODE);
+			// 如果optString()沒有東西的話，回傳的東西就是什麼都沒有(empty string)(也不會是null)
+			if (colorMode.equals("")) {
+				colorMode = "setted";
+			}
 		}
 		return colorMode;
-
 	}// end of getColorMode
 
 	/**

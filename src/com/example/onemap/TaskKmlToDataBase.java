@@ -3,7 +3,6 @@ package com.example.onemap;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -111,12 +110,10 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 			for (int index1 = 0; index1 < pks.getStyleLength(); index1++) {
 				if (styleUrl.equals(pks.getPolyStyleId(index1))) {
 					JSONObject styleContent = new JSONObject();
-					Log.d("mdb", "====placeMarkId equal polyStyleId=====");
 					styleContent.put("polyColor", pks.getPolyColor(index1));
 					styleContent.put("colorMode", pks.getColorMode(index1));
 					styleContent.put("lineColor", pks.getLineColor(index1));
 					styleContent.put("lineWidth", pks.getLineWidth(index1));
-
 					styleContent.put("coordinates",
 							pks.getCoordinateString(index));
 					String fileName = layerName + "_"
