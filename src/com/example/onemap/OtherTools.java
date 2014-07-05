@@ -14,6 +14,8 @@ import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import android.graphics.Color;
 import android.os.Environment;
 import android.util.Log;
 
@@ -158,7 +160,7 @@ public class OtherTools {
 	 * @param jsonObject
 	 * @return
 	 */
-	public File writeJsonToFile(File dirPath, String fileName,
+	public static File writeJsonToFile(File dirPath, String fileName,
 			JSONObject jsonObject) {
 		File txtFile = new File(dirPath, fileName);
 		String styleContnet = jsonObject.toString();
@@ -176,4 +178,23 @@ public class OtherTools {
 		}
 		return txtFile;
 	}// end of writeJSONObjecToTxt
+	
+	
+	/**
+	 * translate ABGR(String) to ARGB(int)
+	 * 
+	 * @param abgr
+	 * @return
+	 */
+	public static int kmlColorToARGB(String abgr) {
+		String stringAlpha = abgr.substring(0, 2);
+		String strinfBlue = abgr.substring(2, 4);
+		String stringGreen = abgr.substring(4, 6);
+		String strinfRed = abgr.substring(6);
+
+		// 主要是透過parseColor將StringARGB轉為int
+		int argb = Color.parseColor("#" + stringAlpha + strinfRed + stringGreen
+				+ strinfBlue);
+		return argb;
+	}// end of kmlColorToARGB
 }// end of Class OtherTools

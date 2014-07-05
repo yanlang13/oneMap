@@ -37,6 +37,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
@@ -228,6 +229,22 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			map.setMyLocationEnabled(true);
 			map.setOnMyLocationButtonClickListener(this);
 
+			// TODO 持續測試THREAD
+			toMapHandler = new Handler() {
+				@Override
+				public void handleMessage(Message msg) {
+					switch (msg.what) {
+					case 0: {
+						Log.d("mdb", "end of databaseToMap");
+						map.addPolygon(polygonList.get(0));
+					}
+						;
+						break;
+					default:
+						break;
+					}
+				}
+			}; // end of toMapHandler
 		}// end of if
 	}// end of setUpSingleMapIfNeeded
 
@@ -355,18 +372,17 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
-				int size = pos.get(key).getPoints().size();
-				map.addPolygon(pos.get(key));
+				PolygonOptions options = pos.get(key);
+				map.addPolygon(options);
+				 System.gc();
 			}
-
-			pos.clear();
 
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}// end of if
 
 			// toMapHandler.sendEmptyMessage(0);
-		}
+		}// end of onPostExecute
 	}// end of GetPolygonFromDB
 
 	/**

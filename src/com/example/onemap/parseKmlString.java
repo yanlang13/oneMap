@@ -154,7 +154,7 @@ public class ParseKmlString {
 			abgr = polyStyle.getString(COLOR);
 		}
 
-		return kmlColorToARGB(abgr);
+		return OtherTools.kmlColorToARGB(abgr);
 	}// end of getPoltColor
 
 	public String getColorMode(int index) {
@@ -212,7 +212,7 @@ public class ParseKmlString {
 				}
 			}
 		}
-		return kmlColorToARGB(abgr);
+		return OtherTools.kmlColorToARGB(abgr);
 	}// end of getPoltColor
 
 	/**
@@ -414,27 +414,6 @@ public class ParseKmlString {
 			folderName = optPlaceMark.getJSONObject(index).optString(NAME);
 		}
 		return folderName;
-	}
-
-	// =============================================================priavteMethodsing
-	/**
-	 * translate ABGR to ARGB
-	 * 
-	 * @param abgr
-	 * @return
-	 */
-	private int kmlColorToARGB(String abgr) {
-		String stringAlpha = abgr.substring(0, 2);
-		String strinfBlue = abgr.substring(2, 4);
-		String stringGreen = abgr.substring(4, 6);
-		String strinfRed = abgr.substring(6);
-
-		// 主要是透過parseColor將StringARGB轉為int
-		int argb = Color.parseColor("#" + stringAlpha + strinfRed + stringGreen
-				+ strinfBlue);
-		return argb;
-	}// end of kmlColorToARGB
-		// =============================================================priavteMethodsed
-
+	}// end of getPlaceMarkName
 }// end of parseKmlString
 

@@ -15,7 +15,6 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 	private boolean singlePlaceMark; // 檢查placeMark是否不是JSONArray
 	private File singleMap;
 	private String layerName;
-	private OtherTools otherTools;
 
 	@Override
 	protected Boolean doInBackground(Object... params) {
@@ -23,7 +22,6 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 		layerName = (String) params[1];
 		String kmlString = (String) params[2];
 
-		otherTools = new OtherTools();
 		pks = new ParseKmlString(kmlString);
 		dbHelper = new DBHelper(context);
 		Layer layer = new Layer();
@@ -95,7 +93,7 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 			String fileName = layerName + "_" + pks.getPlaceMarkName(0)
 					+ ".txt";
 
-			File result = otherTools.writeJsonToFile(singleMap, fileName,
+			File result = OtherTools.writeJsonToFile(singleMap, fileName,
 					styleContent);
 			try {
 				return result.toURI().toURL();
@@ -110,15 +108,35 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 			for (int index1 = 0; index1 < pks.getStyleLength(); index1++) {
 				if (styleUrl.equals(pks.getPolyStyleId(index1))) {
 					JSONObject styleContent = new JSONObject();
-					styleContent.put("polyColor", pks.getPolyColor(index1));
-					styleContent.put("colorMode", pks.getColorMode(index1));
+
+					// 如果colorMode是random就幫它設定顏色。
+					String colorMode = pks.getColorMode(index1);
+					if (colorMode.equals("random")) {
+						styleContent.put("colorMode", pks.getColorMode(index1));
+						
+						//起始的第一個顏色
+						int startPolyColor = pks.getPolyColor(index1);
+						
+						//總共的顏色數量
+						int colorNumber= pks.getPlaceMarkLength();
+						
+						//最後一個顏色 
+						
+						String newPolyColor;
+//						styleContent.put("polyColor", polyColor);
+					} else {
+						styleContent.put("polyColor", pks.getPolyColor(index1));
+						styleContent.put("colorMode", pks.getColorMode(index1));
+					}
+
 					styleContent.put("lineColor", pks.getLineColor(index1));
 					styleContent.put("lineWidth", pks.getLineWidth(index1));
+
 					styleContent.put("coordinates",
 							pks.getCoordinateString(index));
 					String fileName = layerName + "_"
 							+ pks.getPlaceMarkName(index) + ".txt";
-					File result = otherTools.writeJsonToFile(singleMap,
+					File result = OtherTools.writeJsonToFile(singleMap,
 							fileName, styleContent);
 					try {
 						return result.toURI().toURL();
