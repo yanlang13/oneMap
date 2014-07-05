@@ -14,7 +14,6 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 	private DBHelper dbHelper;
 	private ParseKmlString pks;
 	private boolean singlePlaceMark; // 檢查placeMark是否不是JSONArray
-	private JSONObject styleContent;// 存到sd Card的內容
 	private File singleMap;
 	private String layerName;
 	private OtherTools otherTools;
@@ -29,7 +28,6 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 		pks = new ParseKmlString(kmlString);
 		dbHelper = new DBHelper(context);
 		Layer layer = new Layer();
-		styleContent = new JSONObject();
 		setSinglePlaceMark();
 
 		// 確認sd卡能否讀取
@@ -81,6 +79,7 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 	private URL getStyleLink(int index) {
 		URL url = null;
 		if (singlePlaceMark) {
+			JSONObject styleContent = new JSONObject();
 			// LA_FIELD_STYLE_LINK
 			String styleUrl = pks.transToStyleUrl(pks.getStyleUrl(0));
 			// 存放kml-style
@@ -105,39 +104,31 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 				Log.d("mdb", "TaskKmlToDataBase.class" + e.toString());
 			}
 		} else { // placeMark is JSONArray
-			// TODO 只抓到coordinates 其餘皆發生錯誤。
 			String placeMarkStyleUrl = pks.getStyleUrl(index);
-			Log.d("mdb", "pks.getStyleUrl(index): " + pks.getStyleUrl(index));
 
 			String styleUrl = pks.transToStyleUrl(placeMarkStyleUrl);
-			Log.d("mdb",
-					"pks.transToStyleUrl(placeMarkStyleUrl): "
-							+ pks.transToStyleUrl(placeMarkStyleUrl));
 
-			JSONObject styleContent = new JSONObject();
 			for (int index1 = 0; index1 < pks.getStyleLength(); index1++) {
-				Log.d("mdb",
-						"pks.getPolyStyleId(index1)"
-								+ pks.getPolyStyleId(index1));
-				
 				if (styleUrl.equals(pks.getPolyStyleId(index1))) {
+					JSONObject styleContent = new JSONObject();
+					Log.d("mdb", "====placeMarkId equal polyStyleId=====");
 					styleContent.put("polyColor", pks.getPolyColor(index1));
 					styleContent.put("colorMode", pks.getColorMode(index1));
 					styleContent.put("lineColor", pks.getLineColor(index1));
 					styleContent.put("lineWidth", pks.getLineWidth(index1));
+
+					styleContent.put("coordinates",
+							pks.getCoordinateString(index));
+					String fileName = layerName + "_"
+							+ pks.getPlaceMarkName(index) + ".txt";
+					File result = otherTools.writeJsonToFile(singleMap,
+							fileName, styleContent);
+					try {
+						return result.toURI().toURL();
+					} catch (MalformedURLException e) {
+						Log.d("mdb", "TaskKmlToDataBase.class" + e.toString());
+					}// end of try
 				}// end of if
-
-				styleContent.put("coordinates", pks.getCoordinateString(index));
-				String fileName = layerName + "_" + pks.getPlaceMarkName(index)
-						+ ".txt";
-				File result = otherTools.writeJsonToFile(singleMap, fileName,
-						styleContent);
-				try {
-					return result.toURI().toURL();
-				} catch (MalformedURLException e) {
-					Log.d("mdb", "TaskKmlToDataBase.class" + e.toString());
-				}
-
 			}// end of for
 		}
 		return url;
