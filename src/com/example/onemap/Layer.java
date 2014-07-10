@@ -2,37 +2,36 @@ package com.example.onemap;
 
 public class Layer {
 	private String id;
-	private String layerPlaceName;
+	private String layerName;
 	private String lDesc;
 	private String display;
-	private String pDesc;
-	private String styleLink;
-
+	private String createAt;
+	
 	public Layer() {
+		
 	}
 
-	public Layer(String LayerPlaceName, String desciption, String display,
-			String pDesc, String styleLink) {
+	public Layer(String LayerName, String desciption, String display,
+			String pDesc, String styleLink, String CreateAt) {
 		super();
-		this.layerPlaceName = LayerPlaceName;
+		this.layerName = LayerName;
 		this.lDesc = desciption;
 		this.display = display;
-		this.pDesc = pDesc;
-		this.styleLink = styleLink;
+		this.createAt = createAt;
 	}
 
 	public String toString() {
-		return String
-				.format("[Id: %s,Title: %s, LDesc: %s, Display: %s, PDesc: %s, StyleLink: %s ]",
-						id, layerPlaceName, lDesc, display, pDesc, styleLink);
+		return String.format(
+				"[Id: %s,Title: %s, LDesc: %s, Display: %s , CreateAt: %s]",
+				id, layerName, lDesc, display, createAt);
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public String getLayerPlaceName() {
-		return layerPlaceName;
+	public String getLayerName() {
+		return layerName;
 	}
 
 	public String getDesc() {
@@ -42,13 +41,9 @@ public class Layer {
 	public String getDisplay() {
 		return display;
 	}
-
-	public String getPDesc() {
-		return pDesc;
-	}
-
-	public String getStyleLink() {
-		return styleLink;
+	
+	public String getCreateAt(){
+		return createAt;
 	}
 
 	/**
@@ -58,23 +53,23 @@ public class Layer {
 		this.id = id;
 	}
 
-	public void setLayerPlaceName(String layerPlaceName) {
-		this.layerPlaceName = layerPlaceName;
+	public void setLayerName(String layerName) {
+		this.layerName = layerName;
 	}
 
-	public void setlDesc(String description) {
+	public void setLDesc(String description) {
 		this.lDesc = description;
 	}
 
 	public void setDisplay(String display) {
 		this.display = display;
 	}
-
-	public void setPDesc(String pDesc) {
-		this.pDesc = pDesc;
+	
+	/**
+	 * set dataTime from OtherTools.get
+	 */
+	public void setCreateAt(String createAt){
+		this.createAt = createAt;
 	}
-
-	public void setStyleLink(String styleLink) {
-		this.styleLink = styleLink;
-	}
+	
 }

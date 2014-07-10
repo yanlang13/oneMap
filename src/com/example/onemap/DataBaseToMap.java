@@ -35,42 +35,42 @@ public class DataBaseToMap extends
 		dbHelper = new DBHelper(context);
 		pos = new HashMap<String, PolygonOptions>();
 		// 抓database裡面的layers
-		List<Layer> layers = dbHelper.getAllLayer();
-
-		for (Layer l : layers) {
-			// TODO 判斷是否需要新增到hashMap
-			// 要display的圖才放到showLayers
-			if (l.getDisplay().equals("YES")) {
-				String styleLink = l.getStyleLink();
-				try {
-					URL url = new URL(styleLink);
-					File file = new File(url.toURI());
-					String jsonString = FileUtils.readFileToString(file);
-
-					JSONObject json = new JSONObject(jsonString);
-					json.getString(COLOR_MODE);
-
-					String coordinates = json.getString(COORDINATES);
-					ArrayList<LatLng> latLngs = transCoorStringToLatLngs(coordinates);
-
-					PolygonOptions po = new PolygonOptions();
-					po.addAll(latLngs);
-					po.fillColor(json.getInt(POLY_COLOR));
-					po.strokeColor(json.getInt(LINE_COLOR));
-					po.strokeWidth(json.getInt(LINE_WIDTH));
-
-					String key = l.getLayerPlaceName();
-					pos.put(key, po);
-
-				} catch (MalformedURLException e) {
-					Log.d("mdb", "DataBaseToMap.class: " + e.toString());
-				} catch (IOException e) {
-					Log.d("mdb", "DataBaseToMap.class: " + e.toString());
-				} catch (URISyntaxException e) {
-					Log.d("mdb", "DataBaseToMap.class: " + e.toString());
-				}// end of try
-			}// end of if
-		}// end of for
+//		List<Layer> layers = dbHelper.getAllLayer();
+//
+//		for (Layer l : layers) {
+//			// TODO 判斷是否需要新增到hashMap
+//			// 要display的圖才放到showLayers
+//			if (l.getDisplay().equals("YES")) {
+//				String styleLink = l.getStyleLink();
+//				try {
+//					URL url = new URL(styleLink);
+//					File file = new File(url.toURI());
+//					String jsonString = FileUtils.readFileToString(file);
+//
+//					JSONObject json = new JSONObject(jsonString);
+//					json.getString(COLOR_MODE);
+//
+//					String coordinates = json.getString(COORDINATES);
+//					ArrayList<LatLng> latLngs = transCoorStringToLatLngs(coordinates);
+//
+//					PolygonOptions po = new PolygonOptions();
+//					po.addAll(latLngs);
+//					po.fillColor(json.getInt(POLY_COLOR));
+//					po.strokeColor(json.getInt(LINE_COLOR));
+//					po.strokeWidth(json.getInt(LINE_WIDTH));
+//
+//					String key = l.getLayerPlaceName();
+//					pos.put(key, po);
+//
+//				} catch (MalformedURLException e) {
+//					Log.d("mdb", "DataBaseToMap.class: " + e.toString());
+//				} catch (IOException e) {
+//					Log.d("mdb", "DataBaseToMap.class: " + e.toString());
+//				} catch (URISyntaxException e) {
+//					Log.d("mdb", "DataBaseToMap.class: " + e.toString());
+//				}// end of try
+//			}// end of if
+//		}// end of for
 
 		if (dbHelper != null) {
 			dbHelper.close();

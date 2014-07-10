@@ -21,9 +21,18 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
+import com.google.android.gms.maps.model.GroundOverlayOptionsCreator;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.VisibleRegion;
+
+import de.micromata.opengis.kml.v_2_2_0.Overlay;
+import de.micromata.opengis.kml.v_2_2_0.PhotoOverlay;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -31,6 +40,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
@@ -76,7 +88,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 	private DefaultSettings ds; // 存取各種基本設定
 
-	private static Handler toMapHandler;
 	PolygonOptions PolygonToMap;
 
 	List<PolygonOptions> polygonList;
@@ -230,21 +241,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			map.setOnMyLocationButtonClickListener(this);
 
 			// TODO 持續測試THREAD
-			toMapHandler = new Handler() {
-				@Override
-				public void handleMessage(Message msg) {
-					switch (msg.what) {
-					case 0: {
-						Log.d("mdb", "end of databaseToMap");
-						map.addPolygon(polygonList.get(0));
-					}
-						;
-						break;
-					default:
-						break;
-					}
-				}
-			}; // end of toMapHandler
+
 		}// end of if
 	}// end of setUpSingleMapIfNeeded
 
@@ -373,14 +370,48 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
 				PolygonOptions options = pos.get(key);
-				map.addPolygon(options);
-				 System.gc();
+				System.gc();
 			}
+
+			pos.clear();
 
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}// end of if
 
+			// test
+			Location leftLocation = new Location("left");
+			
+			leftLocation
+					.setLatitude(map.getProjection().getVisibleRegion().farLeft.latitude);
+			leftLocation
+					.setLongitude(map.getProjection().getVisibleRegion().farLeft.longitude);
+
+			Location rightLocation = new Location("rifht");
+			rightLocation
+					.setLatitude(map.getProjection().getVisibleRegion().farRight.latitude);
+			rightLocation
+					.setLongitude(map.getProjection().getVisibleRegion().farRight.longitude);
+
+			Paint paint = new Paint();
+			paint.setARGB(250, 0, 255, 0);
+			paint.setAntiAlias(true);
+			paint.setSubpixelText(true);
+			paint.setFakeBoldText(true);
+			paint.setStrokeWidth(5.0f);
+			paint.setStyle(Paint.Style.STROKE);
+			Bitmap arc = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888);
+			Canvas canvas = new Canvas(arc);
+			canvas.drawColor(0xFFFFFFFF);
+			canvas.drawLine((float) leftLocation.getLongitude(),
+					(float) leftLocation.getLatitude(),
+					(float) rightLocation.getLongitude(),
+					(float) rightLocation.getLatitude(), paint);
+
+			GroundOverlayOptions groundArc = new GroundOverlayOptions().image(
+							BitmapDescriptorFactory.fromBitmap(arc)).position(
+							map.getProjection().getVisibleRegion().farLeft, 10000);
+			map.addGroundOverlay(groundArc);
 			// toMapHandler.sendEmptyMessage(0);
 		}// end of onPostExecute
 	}// end of GetPolygonFromDB

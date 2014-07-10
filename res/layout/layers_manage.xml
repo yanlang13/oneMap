@@ -54,7 +54,7 @@
             android:textSize="@dimen/text_size_large" />
 
         <TextView
-            android:id="@+id/tv_manage_layers"
+            android:id="@+id/tv_manage_layers_show_layer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"

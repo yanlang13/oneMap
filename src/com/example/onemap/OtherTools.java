@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -178,8 +181,7 @@ public class OtherTools {
 		}
 		return txtFile;
 	}// end of writeJSONObjecToTxt
-	
-	
+
 	/**
 	 * translate ABGR(String) to ARGB(int)
 	 * 
@@ -197,4 +199,14 @@ public class OtherTools {
 				+ strinfBlue);
 		return argb;
 	}// end of kmlColorToARGB
+
+	/**
+	 * get date time YYYY-MM-DD HH:mm:ss
+	 */
+	public static String getDateTime() {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(
+				"yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+		Date date = new Date();
+		return dateFormat.format(date);
+	}// end of getDataTime
 }// end of Class OtherTools

@@ -7,6 +7,7 @@ import com.example.onemap.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.app.TaskStackBuilder;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -219,6 +220,7 @@ public class ListSdCard extends Activity {
 	}// end of MyOnItemClickListener
 
 	private class KmlToDataBase extends TaskKmlToDataBase {
+
 		@Override
 		protected void onPreExecute() {
 			progressDialog.show();

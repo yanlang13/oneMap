@@ -11,6 +11,8 @@ import android.util.Log;
 public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 	private final static String YES = "YES";
 	private DBHelper dbHelper;
+	private Layer layer;
+	private PlaceMark placeMark;
 	private ParseKmlString pks;
 	private boolean singlePlaceMark; // 檢查placeMark是否不是JSONArray
 	private File singleMap;
@@ -18,13 +20,14 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 
 	@Override
 	protected Boolean doInBackground(Object... params) {
+		Log.d("mdb", "=====doInBackgroud=====");
 		Context context = (Context) params[0];
 		layerName = (String) params[1];
 		String kmlString = (String) params[2];
-
 		pks = new ParseKmlString(kmlString);
 		dbHelper = new DBHelper(context);
-		Layer layer = new Layer();
+		layer = new Layer();
+		placeMark = new PlaceMark();
 		setSinglePlaceMark();
 
 		// 確認sd卡能否讀取
@@ -40,26 +43,39 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 		}// end of if
 
 		if (singlePlaceMark) { // plceMark is JSONObject
-			layer.setLayerPlaceName(layerName + "_" + pks.getPlaceMarkName(0)); // LA_FIELD_LAYER_NAME
-			layer.setlDesc("test");// LA_FIELD_DESC
+			layer.setLayerName(layerName); // LA_FIELD_LAYER_NAME
+			layer.setLDesc("test");// LA_FIELD_DESC
 			layer.setDisplay(YES);// LA_FIELD_DISPLAY
-			layer.setPDesc("test1");// LA_FIELD_PDESC
-			layer.setStyleLink(getStyleLink(0).toString());// LA_FIELD_S
+			layer.setCreateAt(OtherTools.getDateTime());// LA_FIELD_CREATE_AT
 			dbHelper.addLayer(layer);
+
+			placeMark.setLayerName(layerName);
+			placeMark.setPlaceMarkName(pks.getPlaceMarkName(0));
+			placeMark.setPDesc("test");
+			placeMark.setDisplay(YES);
+			placeMark.setStyleLink(getStyleLink(0).toString());
+			dbHelper.addPlaceMark(placeMark);
+
 		} else { // placeMark is JSONArray
+			layer.setLayerName(layerName);
+			layer.setLDesc("test");
+			layer.setDisplay(YES);
+			layer.setCreateAt(OtherTools.getDateTime());
+			dbHelper.addLayer(layer);
+
 			for (int index = 0; index < pks.getPlaceMarkLength(); index++) {
-				layer.setLayerPlaceName(layerName + "_"
-						+ pks.getPlaceMarkName(index)); // LA_FIELD_LAYER_NAME
-				layer.setlDesc("test");// LA_FIELD_DESC
-				layer.setDisplay(YES);// LA_FIELD_DISPLAY
-				layer.setPDesc("test1");// LA_FIELD_PDESC
-				layer.setStyleLink(getStyleLink(index).toString());// LA_FIELD_S
-				dbHelper.addLayer(layer);
+				placeMark.setLayerName(layerName);
+				placeMark.setPlaceMarkName(pks.getPlaceMarkName(index));
+				placeMark.setPDesc("test");
+				placeMark.setDisplay(YES);
+				placeMark.setStyleLink(getStyleLink(index).toString());
+				dbHelper.addPlaceMark(placeMark);
 			}// end of for
 		}// end of if
-
 		return true;
 	}// end of doInBackground
+
+	// METHOD =================================================================
 
 	/**
 	 * @return if placeMark is JSONObject return true.
@@ -113,8 +129,8 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 					String colorMode = pks.getColorMode(index1);
 					if (colorMode.equals("random")) {
 						styleContent.put("colorMode", pks.getColorMode(index1));
-						
-						//TODO 還有些問題，色彩起點不符原本的。另外會有白色不透明(結束點)
+
+						// TODO 還有些問題，色彩起點不符原本的。另外會有白色不透明(結束點)
 						// 起始的第一個顏色
 						int startPolyColor = pks.getPolyColor(index1);
 						Log.d("mdb", "startPolyColor: " + startPolyColor);
