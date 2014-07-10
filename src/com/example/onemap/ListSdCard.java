@@ -34,7 +34,9 @@ public class ListSdCard extends Activity {
 
 	private DBHelper dbHelper;
 
-	// ============================================================ onCreate ING
+	// ========================================================================
+	// ======= ACTIVITY LIFECYCLE =============================================
+	// ========================================================================
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -69,10 +71,9 @@ public class ListSdCard extends Activity {
 		}// end of if
 	}// end of onCreate
 
-	// ============================================================ onCreate ED
-
-	// ============================================================ Method ING
-
+	// ========================================================================
+	// ====== ONCREATE METHODS ================================================
+	// ========================================================================
 	/**
 	 * 如果到達emulate的最上層就返回main，如果不是在做listView
 	 * 
@@ -91,6 +92,9 @@ public class ListSdCard extends Activity {
 		}
 	}// end of setPageUp
 
+	// ========================================================================
+	// ======== PRIVATE METHODS ===============================================
+	// ========================================================================
 	/**
 	 * @param file
 	 * @return true file的parentPath為/storage/emulated
@@ -165,10 +169,9 @@ public class ListSdCard extends Activity {
 		}
 	}// end of sortAndAddToList
 
-	// ============================================================ MethodED
-
-	// ============================================================ class ING
-
+	// =========================================================================
+	// ======= CLICK LISTENRER =================================================
+	// =========================================================================
 	/**
 	 * listView item click
 	 * 
@@ -219,6 +222,9 @@ public class ListSdCard extends Activity {
 		}// end of onItemClick
 	}// end of MyOnItemClickListener
 
+	// ========================================================================
+	// ======= ASYNCTASK METHODS ==============================================
+	// ========================================================================
 	private class KmlToDataBase extends TaskKmlToDataBase {
 
 		@Override
@@ -242,9 +248,9 @@ public class ListSdCard extends Activity {
 		}// end of onPostExecute
 	}// end of KmlToDataBase
 
-	// ============================================================ class ED
-
-	// ============================================================ Menu
+	// ========================================================================
+	// ========= MENU =========================================================
+	// ========================================================================
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main_null, menu);
@@ -266,6 +272,4 @@ public class ListSdCard extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}// end of onOptionsItemSelected
-
-	// ============================================================ MenuED
 }// end of ListSdCard

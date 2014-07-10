@@ -96,7 +96,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	List<PolygonOptions> medPO;
 	List<PolygonOptions> smaPO;
 
-	// ====================================================================Declared
+	// =========================================================================
+	// ============ ACTIVITY LIFECYCLE =========================================
+	// =========================================================================
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +115,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		PolygonToMap = new PolygonOptions();
 		polygonList = new ArrayList<PolygonOptions>();
+
+		// new GetPolygonFromDB().execute(getApplicationContext());
 
 	}// end of onCreate
 
@@ -161,7 +165,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		actionBarDrawerToggle.onConfigurationChanged(newConfig);
 	}
 
-	// ====================================================================onCreating
+	// =========================================================================
+	// =========== ONCREATE METHODS ============================================
+	// =========================================================================
 	private void setLeftDrawer() {
 		drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		drawerList = (ListView) findViewById(R.id.left_drawer);
@@ -218,9 +224,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		// }
 	}// end of setLeftDrawer()
 
-	// ====================================================================onCreated
-
-	// ====================================================================onResuming
+	// =========================================================================
+	// ======= ONRESUME METHODS=================================================
+	// =========================================================================
 	/**
 	 * @param position
 	 *            選擇哪一個base map。
@@ -272,13 +278,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		}
 	}// end of setMapLayoutType
 
-	// ====================================================================onResumed
-
-	// ====================================================================onStoping
-
-	// ====================================================================onStopinged
-
-	// ====================================================================MenuING
+	// =========================================================================
+	// ========== MENU =========================================================
+	// =========================================================================
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
@@ -349,11 +351,16 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		return super.onOptionsItemSelected(item);
 	}// end of onOptionsItemSelected
 
-	// ====================================================================MenuED
+	// =========================================================================
+	// ======== ASYNCTACK CLASS ================================================
+	// =========================================================================
 
-	// ====================================================================Classing
-
-	private class GetPolygonFromDB extends DataBaseToMap {
+	/**
+	 * 
+	 * @author acer
+	 * 
+	 */
+	private class GetPolygonFromDB extends TaskDataBaseToMap {
 		@Override
 		protected void onPreExecute() {
 			progressDialog.show();
@@ -370,6 +377,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
 				PolygonOptions options = pos.get(key);
+				map.addPolygon(options);
 				System.gc();
 			}
 
@@ -381,7 +389,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 			// test
 			Location leftLocation = new Location("left");
-			
+
 			leftLocation
 					.setLatitude(map.getProjection().getVisibleRegion().farLeft.latitude);
 			leftLocation
@@ -409,8 +417,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 					(float) rightLocation.getLatitude(), paint);
 
 			GroundOverlayOptions groundArc = new GroundOverlayOptions().image(
-							BitmapDescriptorFactory.fromBitmap(arc)).position(
-							map.getProjection().getVisibleRegion().farLeft, 10000);
+					BitmapDescriptorFactory.fromBitmap(arc)).position(
+					map.getProjection().getVisibleRegion().farLeft, 10000);
 			map.addGroundOverlay(groundArc);
 			// toMapHandler.sendEmptyMessage(0);
 		}// end of onPostExecute
@@ -449,13 +457,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		}// end of onPostExecute
 	}// end of GetAddressTask
 
-	// ====================================================================Classed
-
-	// ====================================================================MethodING
-
-	// ====================================================================MethodED
-
-	// ====================================================================Overriding
+	// =========================================================================
+	// ===== OVERRIDE ==========================================================
+	// =========================================================================
 	@Override
 	// ConnectionCallbacks
 	public void onConnected(Bundle arg0) {
@@ -522,7 +526,5 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	public void onConnectionFailed(ConnectionResult connectionResult) {
 		Log.d("mdb", "in onConnectionFailed");
 	}// end of onConnectionFailed
-
-	// ====================================================================OverrideD
 }// end of MainActivity
 

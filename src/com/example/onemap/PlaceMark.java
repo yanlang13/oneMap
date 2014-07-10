@@ -27,7 +27,7 @@ public class PlaceMark {
 	public String getId() {
 		return this.id;
 	}
-
+	
 	public String getLayerName() {
 		return this.layerName;
 	}

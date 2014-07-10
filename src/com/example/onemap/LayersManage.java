@@ -6,10 +6,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import com.example.onemap.JSONObject;
 import com.example.onemap.R;
+import com.google.android.gms.internal.db;
 
+import android.R.integer;
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
@@ -30,8 +35,9 @@ import android.widget.Toast;
 
 public class LayersManage extends Activity {
 	private Spinner spUMap;
-	private TextView tvKML;
+	private TextView tvKML, tvDisplay;
 	private DefaultSettings ds;
+	private DBHelper dbHelper;
 
 	// 測試用，input的polygon file name
 	private String INPUT_KML_FILE = "水資源局轄區範圍圖.kml";
@@ -44,21 +50,39 @@ public class LayersManage extends Activity {
 		getActionBar().setHomeButtonEnabled(true);
 
 		spUMap = (Spinner) findViewById(R.id.sp_manage_base_map);
+		tvDisplay = (TextView) findViewById(R.id.tv_manage_layers_display);
+		tvDisplay.setText("");
 		tvKML = (TextView) findViewById(R.id.tv_manage_GeoJSON);
 		// textview scrolling, 搭配.xml的 android:scrollbars = "vertical"
 		tvKML.setMovementMethod(new ScrollingMovementMethod());
 
 		ds = new DefaultSettings(LayersManage.this);
+		dbHelper = new DBHelper(getApplicationContext());
 
 		// 下拉前的呈現方式
 		setSpinnerInfo();
-		
-		//TODO add layers to map (button)
-		//TODO remove layers from map (button)
+
+		List<Layer> layers = dbHelper.getDisplayLayer();
+
+		for (int i = 0; i < layers.size(); i++) {
+			String displayLayer = layers.get(i).getLayerName();
+			int number = i + 1;
+
+			// 如果不確定string.format會是英文的話，就要加入Locale.getDefault()
+			String show = String.format(Locale.getDefault(), "[%d] %s\n",
+					number, displayLayer);
+
+			tvDisplay.append(show);
+		}
+
+		// TODO add layers to map (button)
+		// TODO remove layers from map (button)
 
 	}// end of onCreate
 
-	// ============================================================ onCreating
+	// =========================================================================
+	// ======== ONCREATE METHODS ===============================================
+	// =========================================================================
 	private void setSpinnerInfo() {
 		String[] test = getResources().getStringArray(R.array.google_map);
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
@@ -82,6 +106,9 @@ public class LayersManage extends Activity {
 		});
 	}// end of spinnerSelected
 
+	// =========================================================================
+	// ====== BUTTON METHODS ===================================================
+	// =========================================================================
 	public void parseKMLtoText(View view) { // onClick
 		int PRETTY_PRINT_INDENT_FACTOR = 4;
 		try {
@@ -123,16 +150,16 @@ public class LayersManage extends Activity {
 		Toast.makeText(LayersManage.this, "export db to SD card",
 				Toast.LENGTH_SHORT).show();
 	}// end of exportDatabase
-	
-	public void deleteDatabase(View view){
+
+	public void deleteDatabase(View view) {
 		LayersManage.this.deleteDatabase("oneMaps.db");
-		Toast.makeText(LayersManage.this, "delete database",
-				Toast.LENGTH_SHORT).show();
+		Toast.makeText(LayersManage.this, "delete database", Toast.LENGTH_SHORT)
+				.show();
 	}
 
-	// ============================================================ onCreated
-
-	// ============================================================ Menu
+	// =========================================================================
+	// ======== MENU ===========================================================
+	// =========================================================================
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main_null, menu);
@@ -154,8 +181,4 @@ public class LayersManage extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}// end of onOptionsItemSelected
-	
-	//TODO 改寫BACKUP鍵，主要是需要重新onCreate
-	
-	// ============================================================ MenuED
-}
+}// end of class LayersManage

@@ -13,10 +13,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import android.graphics.Color;
 import android.os.Environment;
@@ -209,4 +214,33 @@ public class OtherTools {
 		Date date = new Date();
 		return dateFormat.format(date);
 	}// end of getDataTime
+	
+	/**
+	 * Translation KML Coordinate String to LatLngs (copy from ParsingKmlString)
+	 * 
+	 * @param coordinates
+	 * @return
+	 */
+	public static ArrayList<LatLng> transCoorStringToLatLngs(String coordinates) {
+		// 取出的kmlString轉為list，split用 | 分隔使用的分隔符號
+		List<String> listStringCoordinates = new ArrayList<String>(
+				Arrays.asList(coordinates.split(",| ")));
+
+		ArrayList<LatLng> latLngs = new ArrayList<LatLng>();
+
+		int length = listStringCoordinates.size();
+
+		for (int i = 0; i < length - 1; i += 3) {
+			// 取kmlString的coordinates 轉double
+			// d1為longitude
+			double longitude = Double.valueOf(listStringCoordinates.get(i));
+			// d2為latitude
+			double latitude = Double.valueOf(listStringCoordinates.get(i + 1));
+			LatLng latLng = new LatLng(latitude, longitude);
+
+			// 放LatLng到ArrayList
+			latLngs.add(latLng);
+		}
+		return latLngs;
+	}// end of transCoorStringToLatLngs
 }// end of Class OtherTools

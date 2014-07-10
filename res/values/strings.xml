@@ -1,24 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- ACTIVITY NAME -->
     <string name="app_name">One Maps</string>
+    <string name="list_sd_card">Add KML file to Map:</string>
+    <string name="layers_list">Layers of List:</string>
+    <string name="layers_manage">Manage Layers</string>
+
+    <!-- ACTION NAME -->
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
     <string name="action_kml_to_map">Add KML File to Map</string>
+
+    <!-- DRAWER NAME -->
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
-    <string name="layers_manage">Manage Layers</string>
-    <string name="layers_list">List Layers</string>
-    <string name="list_sd_card">Add KML file to Map:</string>
+
+    <!-- LIST_SD_CARD NAME -->
     <string name="duplicate_name">duplicate name</string>
     <string name="not_a_correct_format">not a correct format</string>
-    
+
+    <!-- OTHERS NAME -->
     <string-array name="google_map">
-        <item >Google Map- None</item>
-        <item >Google Map- Normal</item>
-        <item >Google Map- Hybrid</item>
-        <item >Google Map- Satellite</item>
-        <item >Google Map- Terrain</item>
+        <item>Google Map- None</item>
+        <item>Google Map- Normal</item>
+        <item>Google Map- Hybrid</item>
+        <item>Google Map- Satellite</item>
+        <item>Google Map- Terrain</item>
     </string-array>
 
 </resources>

@@ -1,14 +1,16 @@
 package com.example.onemap;
 
+import java.util.Locale;
+
 public class Layer {
 	private String id;
 	private String layerName;
 	private String lDesc;
 	private String display;
 	private String createAt;
-	
+
 	public Layer() {
-		
+
 	}
 
 	public Layer(String LayerName, String desciption, String display,
@@ -21,7 +23,7 @@ public class Layer {
 	}
 
 	public String toString() {
-		return String.format(
+		return String.format(Locale.getDefault(),
 				"[Id: %s,Title: %s, LDesc: %s, Display: %s , CreateAt: %s]",
 				id, layerName, lDesc, display, createAt);
 	}
@@ -41,8 +43,8 @@ public class Layer {
 	public String getDisplay() {
 		return display;
 	}
-	
-	public String getCreateAt(){
+
+	public String getCreateAt() {
 		return createAt;
 	}
 
@@ -64,12 +66,12 @@ public class Layer {
 	public void setDisplay(String display) {
 		this.display = display;
 	}
-	
+
 	/**
 	 * set dataTime from OtherTools.get
 	 */
-	public void setCreateAt(String createAt){
+	public void setCreateAt(String createAt) {
 		this.createAt = createAt;
 	}
-	
+
 }

@@ -207,6 +207,51 @@ public class DBHelper extends SQLiteOpenHelper {
 	}// end of updateLayer
 
 	/**
+	 * 取的LA_FIELD_DISPLAY = YES的List
+	 * 
+	 * @return
+	 */
+	public List<Layer> getDisplayLayer() {
+		List<Layer> layers = new ArrayList<Layer>();
+
+		SQLiteDatabase db = this.getReadableDatabase();
+		try {
+			Cursor cursor = db.query(TABLE_LAYERS, LA_COLUMNS, LA_FIELD_DISPLAY
+					+ "=?", // c. selections
+					new String[] { "YES" }, // d. selections args
+					null, // e. group by
+					null, // f. having
+					null, // g. order by
+					null); // h. limit
+			// 3. if we got results get the first one
+			if (cursor.moveToFirst()) {
+				do {
+					Layer layer = new Layer();
+					layer.setId(cursor.getString(0));
+					layer.setLayerName(cursor.getString(1));
+					layer.setLDesc(cursor.getString(2));
+					layer.setDisplay(cursor.getString(3));
+					layer.setCreateAt(cursor.getString(4));
+					layers.add(layer);
+
+				} while (cursor.moveToNext());
+			}
+
+			cursor.close();
+
+		} catch (CursorIndexOutOfBoundsException e) {
+			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
+		}
+		db.close();
+		return layers;
+	}// end of List<Layer> getDisplayLayer()
+
+	// ==========================================================================
+	// ==========METHODS FOR LAYERS
+	// =============================================
+	// ==========================================================================
+
+	/**
 	 * 傳入的是kml的檔名，比對的是layerName，如果layerName有重複，則傳回true，反之則false
 	 */
 	public boolean duplicateCheck(String layerName) {
@@ -218,8 +263,13 @@ public class DBHelper extends SQLiteOpenHelper {
 			}
 		}
 		return false;
-	}
+	}// end of boolean duplicateCheck
 
+	/**
+	 * Layers的總數
+	 * 
+	 * @return
+	 */
 	public int getLayerCount() {
 		SQLiteDatabase db = this.getReadableDatabase();
 		String query = "SELECT  * FROM " + TABLE_LAYERS;
@@ -238,7 +288,13 @@ public class DBHelper extends SQLiteOpenHelper {
 		return duplicate;
 	}// end of getDuplicate
 
-	// ======================== PLACE table methods ========================
+	// ========================================================================
+	// ========== PLACE TABLE =================================================
+	// ========================================================================
+	/**
+	 * 
+	 * @param placeMark
+	 */
 	public void addPlaceMark(PlaceMark placeMark) {
 		// 1. get reference to writable DB
 		SQLiteDatabase db = this.getWritableDatabase();
@@ -256,4 +312,44 @@ public class DBHelper extends SQLiteOpenHelper {
 		db.close();
 	}// end of addPlaceMark
 
+	/**
+	 * 取得PM_FIELD_DISPLAY = YES的 List
+	 * 
+	 * @return
+	 */
+	public List<PlaceMark> getDisplayPlaceMark() {
+		List<PlaceMark> placeMarks = new ArrayList<PlaceMark>();
+
+		SQLiteDatabase db = this.getReadableDatabase();
+		try {
+			Cursor cursor = db.query(TABLE_PLACE, PM_COLUMNS, PM_FIELD_DISPLAY
+					+ "=?", // c. selections
+					new String[] { "YES" }, // d. selections args
+					null, // e. group by
+					null, // f. having
+					null, // g. order by
+					null); // h. limit
+			// 3. if we got results get the first one
+			if (cursor.moveToFirst()) {
+				do {
+					PlaceMark placeMark = new PlaceMark();
+					placeMark.setId(cursor.getString(0));
+					placeMark.setLayerName(cursor.getString(1));
+					placeMark.setPlaceMarkName(cursor.getString(2));
+					placeMark.setPDesc(cursor.getString(3));
+					placeMark.setDisplay(cursor.getString(4));
+					placeMark.setStyleLink(cursor.getString(5));
+					placeMarks.add(placeMark);
+
+				} while (cursor.moveToNext());
+			}
+
+			cursor.close();
+
+		} catch (CursorIndexOutOfBoundsException e) {
+			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
+		}
+		db.close();
+		return placeMarks;
+	}// end of List<PlaceMark> getDisplayPlaceMark()
 }// end of DBHelper
