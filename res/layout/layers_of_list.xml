@@ -4,13 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/tv_layer_of_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Layers of List:"
-        android:textSize="@dimen/text_size_large" />
-
     <ListView
         android:id="@+id/lv_layer_of_list"
         android:layout_width="match_parent"

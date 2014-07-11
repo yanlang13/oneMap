@@ -10,59 +10,22 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.widget.Toast;
+import static com.example.onemap.AcrossConstants.*;
 
 public class DBHelper extends SQLiteOpenHelper {
-	final static int DB_VERSION = 1;
-	private static final String DATABASE_NAME = "oneMaps.db";
 
-	private static final String TABLE_LAYERS = "Layers";
-	private static final String TABLE_PLACE = "PlaceMarks";
 
-	// column of Layers
-	private static final String LA_FIELD_ID = "id";
-	private static final String LA_FIELD_LAYER_NAME = "LayerName";
-	private static final String LA_FIELD_LDESC = "LayerDescription";
-	private static final String LA_FIELD_DISPLAY = "Display";
-	private static final String LA_FIELD_CREATE_AT = "CreateAt";
-
-	// column of PlaceMarks
-	private static final String PM_FIELD_ID = "id";
-	private static final String PM_FIELD_LAYER_NAME = "LayerName";
-	private static final String PM_FIELD_PLACEMARK_NAME = "PlaceMarkName";
-	private static final String PM_FIELD_DESC = "PlaceMarkDescription";
-	private static final String PM_FIELD_DISPLAY = "Display";
-	private static final String PM_FIELD_STYLELINK = "StyleLink";
-
-	final static String[] LA_COLUMNS = { LA_FIELD_ID, LA_FIELD_LAYER_NAME,
-			LA_FIELD_LDESC, LA_FIELD_DISPLAY, LA_FIELD_CREATE_AT };
-
-	final static String[] PM_COLUMNS = { PM_FIELD_ID, PM_FIELD_LAYER_NAME,
-			PM_FIELD_PLACEMARK_NAME, PM_FIELD_DESC, PM_FIELD_DISPLAY,
-			PM_FIELD_STYLELINK };
-
-	final static String INIT_LA_TABLE = "CREATE TABLE IF NOT EXISTS "
-			+ TABLE_LAYERS + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
-			+ LA_FIELD_LAYER_NAME + " TEXT, " + LA_FIELD_LDESC + " TEXT, "
-			+ LA_FIELD_CREATE_AT + " TEXT, " + LA_FIELD_DISPLAY + " TEXT);";
-
-	final static String INIT_PM_TABLE = "CREATE TABLE IF NOT EXISTS "
-			+ TABLE_PLACE + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
-			+ PM_FIELD_LAYER_NAME + " TEXT, " + PM_FIELD_PLACEMARK_NAME
-			+ " TEXT, " + PM_FIELD_DESC + " TEXT, " + PM_FIELD_DISPLAY
-			+ " TEXT, " + PM_FIELD_STYLELINK + " TEXT);";
-
-	final static String DROP_LA_TABLE = "DROP TABLE IF EXISTS " + TABLE_LAYERS;
-	final static String DROP_PM_TABLE = "DROP TABLE IF EXISTS " + TABLE_PLACE;
 
 	private Context context;
 
 	// 用在確認是否重複，ListSdCard使用
 	private boolean duplicate = false;
 
-	// =================================================================
-
+	// ====================================================================
+	// ======== DATABASE ==================================================
+	// ====================================================================
 	public DBHelper(Context context) {
-		super(context, DATABASE_NAME, null, DB_VERSION);
+		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 		this.context = context;
 	}
 
@@ -81,7 +44,9 @@ public class DBHelper extends SQLiteOpenHelper {
 		db.execSQL(DROP_PM_TABLE);
 	}
 
-	// ======================== LAYERS table methods ========================
+	// ====================================================================
+	// ====== LAYERS TABLE METHODS ========================================
+	// ====================================================================
 
 	public void addLayer(Layer layer) {
 		// 1. get reference to writable DB
@@ -213,7 +178,6 @@ public class DBHelper extends SQLiteOpenHelper {
 	 */
 	public List<Layer> getDisplayLayer() {
 		List<Layer> layers = new ArrayList<Layer>();
-
 		SQLiteDatabase db = this.getReadableDatabase();
 		try {
 			Cursor cursor = db.query(TABLE_LAYERS, LA_COLUMNS, LA_FIELD_DISPLAY
@@ -246,10 +210,9 @@ public class DBHelper extends SQLiteOpenHelper {
 		return layers;
 	}// end of List<Layer> getDisplayLayer()
 
-	// ==========================================================================
-	// ==========METHODS FOR LAYERS
-	// =============================================
-	// ==========================================================================
+	// =======================================================================
+	// ==========METHODS FOR LAYERS ==========================================
+	// =======================================================================
 
 	/**
 	 * 傳入的是kml的檔名，比對的是layerName，如果layerName有重複，則傳回true，反之則false
@@ -289,7 +252,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	}// end of getDuplicate
 
 	// ========================================================================
-	// ========== PLACE TABLE =================================================
+	// ========== PLACE TABLE METHODS =========================================
 	// ========================================================================
 	/**
 	 * 
