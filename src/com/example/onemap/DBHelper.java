@@ -14,8 +14,6 @@ import static com.example.onemap.AcrossConstants.*;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-
-
 	private Context context;
 
 	// 用在確認是否重複，ListSdCard使用
@@ -56,6 +54,7 @@ public class DBHelper extends SQLiteOpenHelper {
 			// 2. create ContentValues to add key "column"/value
 			ContentValues values = new ContentValues();
 			values.put(LA_FIELD_LAYER_NAME, layer.getLayerName());
+			values.put(LA_FIELD_LAYER_SIZE, layer.getLayerSize());
 			values.put(LA_FIELD_LDESC, layer.getDesc());
 			values.put(LA_FIELD_DISPLAY, layer.getDisplay());
 			values.put(LA_FIELD_CREATE_AT, layer.getCreateAt());
@@ -96,9 +95,10 @@ public class DBHelper extends SQLiteOpenHelper {
 			// 4. build book object
 			layer.setId(cursor.getString(0));
 			layer.setLayerName(cursor.getString(1));
-			layer.setLDesc(cursor.getString(2));
-			layer.setDisplay(cursor.getString(3));
-			layer.setCreateAt(cursor.getString(4));
+			layer.setLayerSize(cursor.getInt(2));
+			layer.setLDesc(cursor.getString(3));
+			layer.setDisplay(cursor.getString(4));
+			layer.setCreateAt(cursor.getString(5));
 			// 5. return book
 		} catch (CursorIndexOutOfBoundsException e) {
 			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
@@ -128,9 +128,10 @@ public class DBHelper extends SQLiteOpenHelper {
 					layer = new Layer();
 					layer.setId(cursor.getString(0));
 					layer.setLayerName(cursor.getString(1));
-					layer.setLDesc(cursor.getString(2));
-					layer.setDisplay(cursor.getString(3));
-					layer.setCreateAt(cursor.getString(4));
+					layer.setLayerSize(cursor.getInt(2));
+					layer.setLDesc(cursor.getString(3));
+					layer.setDisplay(cursor.getString(4));
+					layer.setCreateAt(cursor.getString(5));
 					// Add book to books
 					layers.add(layer);
 				} while (cursor.moveToNext());
@@ -162,6 +163,7 @@ public class DBHelper extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		ContentValues values = new ContentValues();
 		values.put(LA_FIELD_LAYER_NAME, newLayer.getLayerName());
+		values.put(LA_FIELD_LAYER_SIZE, newLayer.getLayerSize());
 		values.put(LA_FIELD_LDESC, newLayer.getDesc());
 		values.put(LA_FIELD_DISPLAY, newLayer.getDisplay());
 		values.put(LA_FIELD_CREATE_AT, newLayer.getCreateAt());
@@ -193,9 +195,10 @@ public class DBHelper extends SQLiteOpenHelper {
 					Layer layer = new Layer();
 					layer.setId(cursor.getString(0));
 					layer.setLayerName(cursor.getString(1));
-					layer.setLDesc(cursor.getString(2));
-					layer.setDisplay(cursor.getString(3));
-					layer.setCreateAt(cursor.getString(4));
+					layer.setLayerSize(cursor.getInt(2));
+					layer.setLDesc(cursor.getString(3));
+					layer.setDisplay(cursor.getString(4));
+					layer.setCreateAt(cursor.getString(5));
 					layers.add(layer);
 
 				} while (cursor.moveToNext());

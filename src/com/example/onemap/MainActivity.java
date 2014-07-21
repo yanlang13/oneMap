@@ -106,7 +106,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		ds = new DefaultSettings(MainActivity.this);
 		setContentView(R.layout.single_maps);
 		progressDialog = new ProgressDialog(this);
-
+		
 		// MainActivity.this.deleteDatabase("oneMaps.db");
 		setLeftDrawer();
 		bigPO = new ArrayList<PolygonOptions>();

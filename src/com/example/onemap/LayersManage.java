@@ -53,27 +53,15 @@ public class LayersManage extends Activity {
 		tvDisplay = (TextView) findViewById(R.id.tv_manage_layers_display);
 		tvDisplay.setText("");
 		tvKML = (TextView) findViewById(R.id.tv_manage_GeoJSON);
-		// textview scrolling, 搭配.xml的 android:scrollbars = "vertical"
-		tvKML.setMovementMethod(new ScrollingMovementMethod());
 
 		ds = new DefaultSettings(LayersManage.this);
 		dbHelper = new DBHelper(getApplicationContext());
 
-		// 下拉前的呈現方式
+		// textview scrolling, 搭配.xml的 android:scrollbars = "vertical"
+		tvKML.setMovementMethod(new ScrollingMovementMethod());
+
 		setSpinnerInfo();
-
-		List<Layer> layers = dbHelper.getDisplayLayer();
-
-		for (int i = 0; i < layers.size(); i++) {
-			String displayLayer = layers.get(i).getLayerName();
-			int number = i + 1;
-
-			// 如果不確定string.format會是英文的話，就要加入Locale.getDefault()
-			String show = String.format(Locale.getDefault(), "[%d] %s\n",
-					number, displayLayer);
-
-			tvDisplay.append(show);
-		}
+		setTVDisplay();
 
 		// TODO add layers to map (button)
 		// TODO remove layers from map (button)
@@ -83,6 +71,24 @@ public class LayersManage extends Activity {
 	// =========================================================================
 	// ======== ONCREATE METHODS ===============================================
 	// =========================================================================
+
+	private void setTVDisplay() {
+		List<Layer> layers = dbHelper.getDisplayLayer();
+		for (int i = 0; i < layers.size(); i++) {
+			String displayLayer = layers.get(i).getLayerName();
+			int number = i + 1;
+			int size = layers.get(i).getLayerSize();
+			// 如果不確定string.format會是英文的話，就要加入Locale.getDefault()
+			String show = String.format(Locale.getDefault(),
+					"[%d] %s, %d polygons.\n", number, displayLayer, size);
+			tvDisplay.append(show);
+		}
+
+	}// end of setTVDisplay()
+
+	/**
+	 * 下拉選單前的呈現方式
+	 */
 	private void setSpinnerInfo() {
 		String[] test = getResources().getStringArray(R.array.google_map);
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,

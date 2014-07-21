@@ -4,8 +4,9 @@ import android.provider.BaseColumns;
 
 /**
  * 提供dbhelper的String
+ * 
  * @author acer
- *
+ * 
  */
 public class AcrossConstants implements BaseColumns {
 	public static final String DATABASE_NAME = "oneMaps.db";
@@ -18,6 +19,7 @@ public class AcrossConstants implements BaseColumns {
 	// =======================================================================
 	public static final String LA_FIELD_ID = "id";
 	public static final String LA_FIELD_LAYER_NAME = "LayerName";
+	public static final String LA_FIELD_LAYER_SIZE = "layerSize";
 	public static final String LA_FIELD_LDESC = "LayerDescription";
 	public static final String LA_FIELD_DISPLAY = "Display";
 	public static final String LA_FIELD_CREATE_AT = "CreateAt";
@@ -36,8 +38,8 @@ public class AcrossConstants implements BaseColumns {
 	// ==== COLUMN LIST ======================================================
 	// =======================================================================
 	public static final String[] LA_COLUMNS = { LA_FIELD_ID,
-			LA_FIELD_LAYER_NAME, LA_FIELD_LDESC, LA_FIELD_DISPLAY,
-			LA_FIELD_CREATE_AT };
+			LA_FIELD_LAYER_NAME, LA_FIELD_LAYER_SIZE, LA_FIELD_LDESC,
+			LA_FIELD_DISPLAY, LA_FIELD_CREATE_AT };
 
 	public static final String[] PM_COLUMNS = { PM_FIELD_ID,
 			PM_FIELD_LAYER_NAME, PM_FIELD_PLACEMARK_NAME, PM_FIELD_DESC,
@@ -48,8 +50,9 @@ public class AcrossConstants implements BaseColumns {
 	// =======================================================================
 	public static final String INIT_LA_TABLE = "CREATE TABLE IF NOT EXISTS "
 			+ TABLE_LAYERS + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
-			+ LA_FIELD_LAYER_NAME + " TEXT, " + LA_FIELD_LDESC + " TEXT, "
-			+ LA_FIELD_CREATE_AT + " TEXT, " + LA_FIELD_DISPLAY + " TEXT);";
+			+ LA_FIELD_LAYER_NAME + " TEXT, " + LA_FIELD_LAYER_SIZE + " INTEGER, "
+			+ LA_FIELD_LDESC + " TEXT, " + LA_FIELD_CREATE_AT + " TEXT, "
+			+ LA_FIELD_DISPLAY + " TEXT);";
 
 	public static final String INIT_PM_TABLE = "CREATE TABLE IF NOT EXISTS "
 			+ TABLE_PLACE + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "

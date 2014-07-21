@@ -47,6 +47,7 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 			layer.setLDesc("test");// LA_FIELD_DESC
 			layer.setDisplay(YES);// LA_FIELD_DISPLAY
 			layer.setCreateAt(OtherTools.getDateTime());// LA_FIELD_CREATE_AT
+			layer.setLayerSize(1);
 			dbHelper.addLayer(layer);
 
 			placeMark.setLayerName(layerName);
@@ -61,6 +62,7 @@ public class TaskKmlToDataBase extends AsyncTask<Object, Void, Boolean> {
 			layer.setLDesc("test");
 			layer.setDisplay(YES);
 			layer.setCreateAt(OtherTools.getDateTime());
+			layer.setLayerSize(pks.getPlaceMarkLength() + 1);
 			dbHelper.addLayer(layer);
 
 			for (int index = 0; index < pks.getPlaceMarkLength(); index++) {

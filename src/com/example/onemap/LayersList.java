@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import com.example.onemap.R;
-import com.google.android.gms.drive.internal.l;
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
@@ -15,7 +14,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.SimpleCursorAdapter;
 
 import static com.example.onemap.AcrossConstants.LA_FIELD_LAYER_NAME;
 import static com.example.onemap.AcrossConstants.LA_FIELD_DISPLAY;
