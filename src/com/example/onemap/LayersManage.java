@@ -79,11 +79,16 @@ public class LayersManage extends Activity {
 			int number = i + 1;
 			int size = layers.get(i).getLayerSize();
 			// 如果不確定string.format會是英文的話，就要加入Locale.getDefault()
-			String show = String.format(Locale.getDefault(),
-					"[%d] %s, %d polygons.\n", number, displayLayer, size);
-			tvDisplay.append(show);
-		}
-
+			if (size > 1) {
+				String show = String.format(Locale.getDefault(),
+						"[%d] %s, %d polygons.\n", number, displayLayer, size);
+				tvDisplay.append(show);
+			} else {
+				String show = String.format(Locale.getDefault(),
+						"[%d] %s, %d polygon.\n", number, displayLayer, size);
+				tvDisplay.append(show);
+			}
+		}//end of for
 	}// end of setTVDisplay()
 
 	/**

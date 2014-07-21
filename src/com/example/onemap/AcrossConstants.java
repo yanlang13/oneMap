@@ -17,7 +17,7 @@ public class AcrossConstants implements BaseColumns {
 	// =======================================================================
 	// ===== COLUMN OF LAYERS ================================================
 	// =======================================================================
-	public static final String LA_FIELD_ID = "id";
+	public static final String LA_FIELD_ID = "_id";
 	public static final String LA_FIELD_LAYER_NAME = "LayerName";
 	public static final String LA_FIELD_LAYER_SIZE = "layerSize";
 	public static final String LA_FIELD_LDESC = "LayerDescription";
@@ -27,7 +27,7 @@ public class AcrossConstants implements BaseColumns {
 	// =======================================================================
 	// ===== COLUMN OF PLACEMARK =============================================
 	// =======================================================================
-	public static final String PM_FIELD_ID = "id";
+	public static final String PM_FIELD_ID = "_id";
 	public static final String PM_FIELD_LAYER_NAME = "LayerName";
 	public static final String PM_FIELD_PLACEMARK_NAME = "PlaceMarkName";
 	public static final String PM_FIELD_DESC = "PlaceMarkDescription";
@@ -49,13 +49,13 @@ public class AcrossConstants implements BaseColumns {
 	// ===== SQLITE SYNTAX ===================================================
 	// =======================================================================
 	public static final String INIT_LA_TABLE = "CREATE TABLE IF NOT EXISTS "
-			+ TABLE_LAYERS + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
+			+ TABLE_LAYERS + " (" + " _id INTEGER PRIMARY KEY AUTOINCREMENT, "
 			+ LA_FIELD_LAYER_NAME + " TEXT, " + LA_FIELD_LAYER_SIZE + " INTEGER, "
 			+ LA_FIELD_LDESC + " TEXT, " + LA_FIELD_CREATE_AT + " TEXT, "
 			+ LA_FIELD_DISPLAY + " TEXT);";
 
 	public static final String INIT_PM_TABLE = "CREATE TABLE IF NOT EXISTS "
-			+ TABLE_PLACE + " (" + " id INTEGER PRIMARY KEY AUTOINCREMENT, "
+			+ TABLE_PLACE + " (" + " _id INTEGER PRIMARY KEY AUTOINCREMENT, "
 			+ PM_FIELD_LAYER_NAME + " TEXT, " + PM_FIELD_PLACEMARK_NAME
 			+ " TEXT, " + PM_FIELD_DESC + " TEXT, " + PM_FIELD_DISPLAY
 			+ " TEXT, " + PM_FIELD_STYLELINK + " TEXT);";
