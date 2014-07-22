@@ -52,8 +52,7 @@ public class LayersList extends Activity {
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
 
-		// setListView();
-		setListView1();
+		setListView();
 
 		// TODO LONG CLICK: EDIT, DELETE, AND UPLOAD TO PARSE
 	}// end of onCreate()
@@ -72,7 +71,7 @@ public class LayersList extends Activity {
 	/**
 	 * 透過extends simpleAadapter完成List View
 	 */
-	private void setListView1() {
+	private void setListView() {
 		Log.d("mdb", "====setView1=====");
 		layers = dbHelper.getDisplayLayer();
 		for (int location = 0; location < layers.size(); location++) {
@@ -98,36 +97,7 @@ public class LayersList extends Activity {
 
 		layerOfList.setAdapter(simpleAdapter);
 
-	}// end of setListView1()
-
-	/**
-	 * 透過simpleAdapter完成list layers的 list view
-	 */
-	private void setListView() {
-		// TODO SHOW LAYER INFO: NAME, DESC, UPLOAD STATE
-		layers = dbHelper.getDisplayLayer();
-		for (int location = 0; location < layers.size(); location++) {
-			HashMap<String, Object> item = new HashMap<String, Object>();
-			item.put(LA_FIELD_LAYER_NAME, "Layer Name: "
-					+ layers.get(location).getLayerName());
-			item.put(LA_FIELD_CREATE_AT, "Create at: "
-					+ layers.get(location).getCreateAt());
-			item.put(LA_FIELD_DISPLAY, "Display: "
-					+ layers.get(location).getDisplay());
-			listLayers.add(item);
-		}
-
-		String[] from = { LA_FIELD_LAYER_NAME, LA_FIELD_CREATE_AT,
-				LA_FIELD_DISPLAY };
-
-		int[] to = { R.id.tv_layers_info_layer_name,
-				R.id.tv_layers_info_layer_create_at,
-				R.id.tv_layers_info_layer_display };
-
-		SimpleAdapter simpleAdapter = new SimpleAdapter(LayersList.this,
-				listLayers, R.layout.layers_infomation, from, to);
-		layerOfList.setAdapter(simpleAdapter);
-	}// end of setCurserAdapter()
+	}// end of setListView()
 
 	// ========================================================================
 	// ==== MENU ==============================================================
@@ -153,9 +123,12 @@ public class LayersList extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}// end of onOptionsItemSelected
-		// ============================================================ MenuED
-}// end of
+}// end of public class LayersList
 
+/**
+ * 
+ * 主要是override getView
+ */
 class MySimepleAdapter extends SimpleAdapter {
 	private Context context;
 	private LayoutInflater inflater;
@@ -178,37 +151,32 @@ class MySimepleAdapter extends SimpleAdapter {
 			convertView = inflater.inflate(R.layout.layers_infomation, null);
 		}
 
-		TextView layerName = (TextView) convertView
+		TextView tvLayerName = (TextView) convertView
 				.findViewById(R.id.tv_layers_info_layer_name);
-		TextView display = (TextView) convertView
+		TextView tvDisplay = (TextView) convertView
 				.findViewById(R.id.tv_layers_info_layer_display);
-		TextView createAt = (TextView) convertView
+		TextView tvCreateAt = (TextView) convertView
 				.findViewById(R.id.tv_layers_info_layer_create_at);
 
-		HashMap<String, Object> layers = listLayers.get(position);
+		HashMap<String, Object> item = listLayers.get(position);
 
-		layerName.setText("test");
-		display.setText("test");
-		createAt.setText("test");
+		String layerName = item.get(LA_FIELD_LAYER_NAME).toString();
+		String createAt = item.get(LA_FIELD_CREATE_AT).toString();
+		String display = item.get(LA_FIELD_DISPLAY).toString();
 
+		tvLayerName.setText(layerName);
+		tvDisplay.setText(display);
+		tvCreateAt.setText(createAt);
+
+		// display的顏色
+		if (display.equals("Display: YES")) {
+			tvDisplay.setTextColor(context.getResources().getColor(
+					R.color.green_yellow));
+		} else {
+			tvDisplay.setTextColor(context.getResources().getColor(
+					R.color.lava_red));
+		}
 		return convertView;
 	}
-}
+}// end of class MySimepleAdapter
 
-class MyListAdapter extends CursorAdapter {
-
-	public MyListAdapter(Context context, Cursor c, int flags) {
-		super(context, c, flags);
-	}
-
-	@Override
-	public void bindView(View arg0, Context arg1, Cursor arg2) {
-
-	}
-
-	@Override
-	public View newView(Context arg0, Cursor arg1, ViewGroup arg2) {
-		return null;
-	}
-
-}// end of class ListAdapter
