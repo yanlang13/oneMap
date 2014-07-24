@@ -74,6 +74,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.onemap.MainActivity" />
         </activity>
+        <activity
+            android:name=".LayerInfoDetials"
+            android:label="@string/layer_info_detials"
+            android:screenOrientation="portrait" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.onemap.LayersList" />
+        </activity>
     </application>
 
 </manifest>

@@ -22,17 +22,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
-import com.google.android.gms.maps.model.GroundOverlayOptionsCreator;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.VisibleRegion;
-
-import de.micromata.opengis.kml.v_2_2_0.Overlay;
-import de.micromata.opengis.kml.v_2_2_0.PhotoOverlay;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -112,7 +105,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		bigPO = new ArrayList<PolygonOptions>();
 		medPO = new ArrayList<PolygonOptions>();
 		smaPO = new ArrayList<PolygonOptions>();
-
+	
 		PolygonToMap = new PolygonOptions();
 		polygonList = new ArrayList<PolygonOptions>();
 

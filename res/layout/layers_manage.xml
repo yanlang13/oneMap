@@ -35,7 +35,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
         android:layout_marginLeft="@dimen/margin_side"
         android:layout_marginRight="@dimen/margin_side"
         android:layout_marginTop="20dp"
@@ -60,6 +59,37 @@
             android:layout_marginLeft="20dp"
             android:text="Layers.."
             android:textSize="@dimen/text_size_large" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/margin_side"
+        android:layout_marginRight="@dimen/margin_side"
+        android:background="@color/white"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/bt_manage_layers_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="＋" />
+
+            <Button
+                android:id="@+id/bt_manage_layers_remove"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="－" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
