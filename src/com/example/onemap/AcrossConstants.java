@@ -19,7 +19,7 @@ public class AcrossConstants implements BaseColumns {
 	// =======================================================================
 	public static final String LA_FIELD_ID = "_id";
 	public static final String LA_FIELD_LAYER_NAME = "LayerName";
-	public static final String LA_FIELD_LAYER_SIZE = "layerSize";
+	public static final String LA_FIELD_LAYER_SIZE = "LayerSize";
 	public static final String LA_FIELD_LDESC = "LayerDescription";
 	public static final String LA_FIELD_DISPLAY = "Display";
 	public static final String LA_FIELD_CREATE_AT = "CreateAt";

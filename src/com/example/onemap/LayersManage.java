@@ -6,15 +6,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import com.example.onemap.JSONObject;
 import com.example.onemap.R;
-import com.google.android.gms.internal.db;
-
-import android.R.integer;
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
@@ -32,6 +27,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import static com.example.onemap.AcrossConstants.DATABASE_NAME;
+
+;
 
 public class LayersManage extends Activity {
 	private Spinner spUMap;
@@ -88,7 +86,7 @@ public class LayersManage extends Activity {
 						"[%d] %s, %d polygon.\n", number, displayLayer, size);
 				tvDisplay.append(show);
 			}
-		}//end of for
+		}// end of for
 	}// end of setTVDisplay()
 
 	/**
@@ -163,7 +161,7 @@ public class LayersManage extends Activity {
 	}// end of exportDatabase
 
 	public void deleteDatabase(View view) {
-		LayersManage.this.deleteDatabase("oneMaps.db");
+		LayersManage.this.deleteDatabase(DATABASE_NAME);
 		Toast.makeText(LayersManage.this, "delete database", Toast.LENGTH_SHORT)
 				.show();
 	}

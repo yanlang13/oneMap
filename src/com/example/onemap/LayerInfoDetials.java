@@ -20,6 +20,8 @@ public class LayerInfoDetials extends Activity {
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
 
+		// TODO 抓BUNDLE的layerName在做查詢，然後放詳細的placeMarks資料進來。
+
 	}// end of onCreate
 
 	// ========================================================================

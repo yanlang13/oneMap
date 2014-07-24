@@ -5,26 +5,24 @@ import java.util.HashMap;
 import java.util.List;
 import com.example.onemap.R;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.TaskStackBuilder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import static com.example.onemap.AcrossConstants.LA_FIELD_LAYER_NAME;
 import static com.example.onemap.AcrossConstants.LA_FIELD_DISPLAY;
@@ -56,16 +54,9 @@ public class LayersList extends Activity {
 
 		setListView();
 		
-		layerOfList.setOnItemLongClickListener(new OnItemLongClickListener() {
-
-			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				Log.d("mdb", ""+position);
-				return false;
-			}
-		
-		});
+		//這邊的context不能使用getApplicationContext()，因為一個ACTIVITY對應一個WINDOWS
+		layerOfList.setOnItemLongClickListener(new myOnItemLongClickListener(
+				LayersList.this, layers));
 	}// end of onCreate()
 
 	@Override
@@ -83,6 +74,8 @@ public class LayersList extends Activity {
 	 * 透過extends simpleAadapter完成List View
 	 */
 	private void setListView() {
+		
+		//TODO 可以透過sqlite的ORDER BY 來調整順序。
 		for (int location = 0; location < layers.size(); location++) {
 			HashMap<String, Object> item = new HashMap<String, Object>();
 			item.put(LA_FIELD_LAYER_NAME, layers.get(location).getLayerName());
@@ -184,51 +177,59 @@ class MySimepleAdapter extends SimpleAdapter {
 					R.color.lava_red));
 		}
 
-//		ImageButton imageButton = (ImageButton) convertView
-//				.findViewById(R.id.ib_layers_of_infi_info_button);
-//
-//		imageButton.setOnClickListener(new buttonClick(context, layerName));
-
 		return convertView;
 	}
 }// end of class MySimepleAdapter
 
 /**
- * click，傳入layerName來做確認
- */
-class buttonClick implements OnClickListener {
-	private String layerName;
-	private Context context;
-
-	buttonClick(Context context, String layerName) {
-		this.layerName = layerName;
-		this.context = context;
-	}
-
-	@Override
-	public void onClick(View v) {
-		
-		Intent intent = new Intent(context, LayerInfoDetials.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		context.startActivity(intent);
-	}
-}// end of class ItemButtonClick
-
-/**
  * edit, delete and update to server
  */
 class myOnItemLongClickListener implements OnItemLongClickListener {
-	private List<Layer> layers = new ArrayList<Layer>();
+	private DBHelper dbHelper;
+	private List<Layer> layers = new ArrayList<Layer>();;
+	private Context context;
+	final String[] edit = new String[] { "edit", "update layer to server",
+			"delete" };
 
-	public myOnItemLongClickListener(List<Layer> layers) {
+	public myOnItemLongClickListener(Context context, List<Layer> layers) {
+		this.context = context;
 		this.layers = layers;
+		dbHelper = new DBHelper(context);
 	}
 
 	@Override
 	public boolean onItemLongClick(AdapterView<?> parent, View view,
 			int position, long id) {
-		view.setBackgroundColor(Color.GRAY);
-		Log.d("mdb", layers.get(position).getLayerName());
+		final String layerName = layers.get(position).getLayerName();
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle(layerName);
+		builder.setItems(edit, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if (which == 0) {
+					Intent intent = new Intent(context, LayerInfoDetials.class);
+					Bundle bundle = new Bundle();
+					bundle.putString(LA_FIELD_LAYER_NAME, layerName);
+					intent.putExtras(bundle);
+					context.startActivity(intent);
+				} else if (which == 1) {
+					// TODO update data to server
+					Toast.makeText(context, layerName +" is updated.", Toast.LENGTH_SHORT).show();
+				} else if (which == 2) {
+					// TODO delete layer and placeMarks
+					dbHelper.deleteLayerRow(layerName);
+					dbHelper.deletePlaceMarkRows(layerName);
+					
+					Toast.makeText(context, layerName +" is deleted.", Toast.LENGTH_SHORT).show();
+					Intent intent = new Intent(context, LayersList.class);
+					context.startActivity(intent);
+				} else {
+				}
+			}
+		});
+		AlertDialog alertDialog = builder.create();
+		alertDialog.show();
 		return false;
-	}
+	}// end of public boolean onItemLongClick
 }// end of class myOnItemLongClickListener

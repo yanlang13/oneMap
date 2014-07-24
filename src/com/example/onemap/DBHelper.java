@@ -144,15 +144,15 @@ public class DBHelper extends SQLiteOpenHelper {
 		return layers;
 	}// end of getAllLayer()
 
-	public void deleteLayerRow(Layer layer) {
-		// 1. get reference to writable DB
+	/**
+	 * 根據layerName來刪除該項
+	 */
+	public void deleteLayerRow(String layerName) {
 		SQLiteDatabase db = this.getWritableDatabase();
-		db.delete(TABLE_LAYERS, LA_FIELD_ID + " = ?",
-				new String[] { String.valueOf(layer.getId()) });
-
-		// 3. close
+		db.delete(TABLE_LAYERS, LA_FIELD_LAYER_NAME + " = ?",
+				new String[] { String.valueOf(layerName) });
 		db.close();
-	}// end of deleteLayer
+	}// end of deleteLayerRow
 
 	/**
 	 * @param oldLayer
@@ -318,4 +318,13 @@ public class DBHelper extends SQLiteOpenHelper {
 		db.close();
 		return placeMarks;
 	}// end of List<PlaceMark> getDisplayPlaceMark()
+
+	// TODO DELETE PLACEMAKRS BY LAYERNAME
+	public void deletePlaceMarkRows(String layerName) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		db.delete(TABLE_PLACE, PM_FIELD_LAYER_NAME + " = ?",
+				new String[] { String.valueOf(layerName) });
+		db.close();
+	}// end of deletePlaceMarkRows
+
 }// end of DBHelper
