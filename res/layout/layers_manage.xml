@@ -82,12 +82,14 @@
                 android:id="@+id/bt_manage_layers_add"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:onClick="addLayers"
                 android:text="＋" />
 
             <Button
                 android:id="@+id/bt_manage_layers_remove"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                  android:onClick="removeLayers"
                 android:text="－" />
         </LinearLayout>
     </LinearLayout>

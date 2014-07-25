@@ -71,10 +71,10 @@ public class DBHelper extends SQLiteOpenHelper {
 	}// end of addLayer
 
 	/**
-	 * @param title
+	 * @param layerName
 	 * @return layer
 	 */
-	public Layer getLayer(String title) {
+	public Layer getLayer(String layerName) {
 		// 1. get reference to readable DB
 		SQLiteDatabase db = this.getReadableDatabase();
 		Layer layer = new Layer();
@@ -83,7 +83,7 @@ public class DBHelper extends SQLiteOpenHelper {
 			Cursor cursor = db.query(TABLE_LAYERS, // a. table
 					LA_COLUMNS, // b. column names
 					LA_FIELD_LAYER_NAME + "=?", // c. selections
-					new String[] { title }, // d. selections args
+					new String[] { layerName }, // d. selections args
 					null, // e. group by
 					null, // f. having
 					null, // g. order by
@@ -110,7 +110,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	/**
 	 * return List<Layer>
 	 */
-	public List<Layer> getAllLayer() {
+	public List<Layer> getAllLayers() {
 		List<Layer> layers = new ArrayList<Layer>();
 		// 1. build the query
 		String query = "SELECT  * FROM " + TABLE_LAYERS;
@@ -121,21 +121,21 @@ public class DBHelper extends SQLiteOpenHelper {
 
 		// 3. go over each row, build Layer and add it to list
 
-		Layer layer = null;
 		try {
 			if (cursor.moveToFirst()) {
 				do {
-					layer = new Layer();
+					Layer layer = new Layer();
 					layer.setId(cursor.getString(0));
 					layer.setLayerName(cursor.getString(1));
 					layer.setLayerSize(cursor.getInt(2));
 					layer.setLDesc(cursor.getString(3));
-					layer.setDisplay(cursor.getString(4));
-					layer.setCreateAt(cursor.getString(5));
+					layer.setCreateAt(cursor.getString(4));
+					layer.setDisplay(cursor.getString(5));
 					// Add book to books
 					layers.add(layer);
 				} while (cursor.moveToNext());
 			}
+			cursor.close();
 		} catch (IllegalStateException e) {
 			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
 		}
@@ -168,17 +168,17 @@ public class DBHelper extends SQLiteOpenHelper {
 		values.put(LA_FIELD_DISPLAY, newLayer.getDisplay());
 		values.put(LA_FIELD_CREATE_AT, newLayer.getCreateAt());
 
-		db.update(TABLE_LAYERS, values, LA_FIELD_ID + "=?",
-				new String[] { String.valueOf(oldLayer.getId()) });
+		db.update(TABLE_LAYERS, values, LA_FIELD_LAYER_NAME + "=?",
+				new String[] { String.valueOf(oldLayer.getLayerName()) });
 		db.close();
 	}// end of updateLayer
 
 	/**
-	 * 取的LA_FIELD_DISPLAY = YES的List
+	 * 取得LA_FIELD_DISPLAY = YES的List
 	 * 
 	 * @return
 	 */
-	public List<Layer> getDisplayLayer() {
+	public List<Layer> getDisplayLayers() {
 		List<Layer> layers = new ArrayList<Layer>();
 		SQLiteDatabase db = this.getReadableDatabase();
 		try {
@@ -197,21 +197,79 @@ public class DBHelper extends SQLiteOpenHelper {
 					layer.setLayerName(cursor.getString(1));
 					layer.setLayerSize(cursor.getInt(2));
 					layer.setLDesc(cursor.getString(3));
-					layer.setDisplay(cursor.getString(4));
-					layer.setCreateAt(cursor.getString(5));
+					layer.setCreateAt(cursor.getString(4));
+					layer.setDisplay(cursor.getString(5));
 					layers.add(layer);
 
 				} while (cursor.moveToNext());
 			}
-
 			cursor.close();
-
 		} catch (CursorIndexOutOfBoundsException e) {
 			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
 		}
 		db.close();
 		return layers;
 	}// end of List<Layer> getDisplayLayer()
+
+	/**
+	 * 取得LA_FIELD_DISPLAY = YES的List
+	 * 
+	 * @return
+	 */
+	public List<Layer> getOffLayers() {
+		List<Layer> layers = new ArrayList<Layer>();
+		SQLiteDatabase db = this.getReadableDatabase();
+		try {
+			Cursor cursor = db.query(TABLE_LAYERS, LA_COLUMNS, LA_FIELD_DISPLAY
+					+ "=?", // c. selections
+					new String[] { "NO" }, // d. selections args
+					null, // e. group by
+					null, // f. having
+					null, // g. order by
+					null); // h. limit
+			// 3. if we got results get the first one
+			if (cursor.moveToFirst()) {
+				do {
+					Layer layer = new Layer();
+					layer.setId(cursor.getString(0));
+					layer.setLayerName(cursor.getString(1));
+					layer.setLayerSize(cursor.getInt(2));
+					layer.setLDesc(cursor.getString(3));
+					layer.setDisplay(cursor.getString(4));
+					layer.setCreateAt(cursor.getString(5));
+					layers.add(layer);
+
+				} while (cursor.moveToNext());
+			}
+			cursor.close();
+		} catch (CursorIndexOutOfBoundsException e) {
+			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
+		}
+		db.close();
+		return layers;
+	}// end of List<Layer> getDisplayLayer()
+
+	/**
+	 * 只改變layer的display狀態
+	 * 
+	 * @param LayerName
+	 */
+	public void resetDisplay(String layerName, String yesOrNo) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		DBHelper dbHelper = new DBHelper(context);
+		Layer Layer = dbHelper.getLayer(layerName);
+		ContentValues values = new ContentValues();
+		values.put(LA_FIELD_LAYER_NAME, Layer.getLayerName());
+		values.put(LA_FIELD_LAYER_SIZE, Layer.getLayerSize());
+		values.put(LA_FIELD_LDESC, Layer.getDesc());
+		values.put(LA_FIELD_DISPLAY, yesOrNo);
+		values.put(LA_FIELD_CREATE_AT, Layer.getCreateAt());
+
+		db.update(TABLE_LAYERS, values, LA_FIELD_LAYER_NAME + "=?",
+				new String[] { String.valueOf(layerName) });
+		dbHelper.close();
+		db.close();
+	}// end of resetDisplay
 
 	// =======================================================================
 	// ==========METHODS FOR LAYERS ==========================================
@@ -222,7 +280,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	 */
 	public boolean duplicateCheck(String layerName) {
 		// getAllLayer() 有開關db
-		List<Layer> layers = getAllLayer();
+		List<Layer> layers = getAllLayers();
 		for (Layer l : layers) {
 			if (layerName.equals(l.getLayerName())) {
 				return true;
@@ -319,12 +377,80 @@ public class DBHelper extends SQLiteOpenHelper {
 		return placeMarks;
 	}// end of List<PlaceMark> getDisplayPlaceMark()
 
-	// TODO DELETE PLACEMAKRS BY LAYERNAME
+	/**
+	 * DELETE PLACEMAKRS BY LAYERNAME
+	 * 
+	 * @param layerName
+	 */
 	public void deletePlaceMarkRows(String layerName) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(TABLE_PLACE, PM_FIELD_LAYER_NAME + " = ?",
 				new String[] { String.valueOf(layerName) });
 		db.close();
 	}// end of deletePlaceMarkRows
+
+	public List<PlaceMark> getPlaceMarksWithSameLayerName(String layerName) {
+		List<PlaceMark> placeMarks = new ArrayList<PlaceMark>();
+		SQLiteDatabase db = this.getReadableDatabase();
+		try {
+			Cursor cursor = db.query(TABLE_PLACE, PM_COLUMNS,
+					PM_FIELD_LAYER_NAME + "=?", // c. selections
+					new String[] { layerName }, // d. selections args
+					null, // e. group by
+					null, // f. having
+					null, // g. order by
+					null); // h. limit
+			// 3. if we got results get the first one
+			if (cursor.moveToFirst()) {
+				do {
+					PlaceMark placeMark = new PlaceMark();
+					placeMark.setId(cursor.getString(0));
+					placeMark.setLayerName(cursor.getString(1));
+					placeMark.setPlaceMarkName(cursor.getString(2));
+					placeMark.setPDesc(cursor.getString(3));
+					placeMark.setDisplay(cursor.getString(4));
+					placeMark.setStyleLink(cursor.getString(5));
+					placeMarks.add(placeMark);
+
+				} while (cursor.moveToNext());
+			}
+			cursor.close();
+		} catch (CursorIndexOutOfBoundsException e) {
+			Log.d("mdb", "DBHelper Class, " + "Error:" + e.toString());
+		}
+		db.close();
+		return placeMarks;
+	}// end of getPlaceMarksWithSameLayerName
+
+	/**
+	 * 根據layerName，改變placeMarks的display狀態
+	 * 
+	 * @param LayerName
+	 */
+	public void resetPlaceMarkDisplay(String layerName, String yesOrNo) {
+
+		SQLiteDatabase db = this.getWritableDatabase();
+		DBHelper dbHelper = new DBHelper(context);
+
+		List<PlaceMark> placeMarks = dbHelper
+				.getPlaceMarksWithSameLayerName(layerName);
+
+		for (PlaceMark placeMark : placeMarks) {
+			ContentValues values = new ContentValues();
+			values.put(PM_FIELD_LAYER_NAME, placeMark.getLayerName());
+			values.put(PM_FIELD_PLACEMARK_NAME, placeMark.getPlaceMarkName());
+			values.put(PM_FIELD_DESC, placeMark.getPDesc());
+			values.put(PM_FIELD_DISPLAY, yesOrNo);
+			values.put(PM_FIELD_STYLELINK, placeMark.getStyleLink());
+
+			db.update(
+					TABLE_PLACE,
+					values,
+					PM_FIELD_PLACEMARK_NAME + "=?",
+					new String[] { String.valueOf(placeMark.getPlaceMarkName()) });
+		}
+		dbHelper.close();
+		db.close();
+	}// end of resetDisplay
 
 }// end of DBHelper

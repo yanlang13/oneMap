@@ -64,4 +64,4 @@ public class AcrossConstants implements BaseColumns {
 			+ TABLE_LAYERS;
 	public static final String DROP_PM_TABLE = "DROP TABLE IF EXISTS "
 			+ TABLE_PLACE;
-}
+}// end of  AcrossConstants

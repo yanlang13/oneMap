@@ -12,6 +12,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.text.Editable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -50,14 +52,17 @@ public class LayersList extends Activity {
 		dbHelper = new DBHelper(this);
 
 		layerOfList = (ListView) findViewById(R.id.lv_layer_of_list);
-		layers = dbHelper.getDisplayLayer();
+		layers = dbHelper.getAllLayers();
+	}// end of onCreate()
 
+	@Override
+	protected void onResume() {
+		super.onResume();
 		setListView();
-		
-		//這邊的context不能使用getApplicationContext()，因為一個ACTIVITY對應一個WINDOWS
+		// 這邊的context不能使用getApplicationContext()，因為一個ACTIVITY對應一個WINDOWS
 		layerOfList.setOnItemLongClickListener(new myOnItemLongClickListener(
 				LayersList.this, layers));
-	}// end of onCreate()
+	}// end of onResume()
 
 	@Override
 	public void onPause() {
@@ -66,20 +71,21 @@ public class LayersList extends Activity {
 			dbHelper.close();
 		}
 	}// end of onPause()
+		// ========================================================================
+		// ==== ONCREATE METHODS
+		// ==================================================
+		// ========================================================================
 
-	// ========================================================================
-	// ==== ONCREATE METHODS ==================================================
-	// ========================================================================
 	/**
 	 * 透過extends simpleAadapter完成List View
 	 */
 	private void setListView() {
-		
-		//TODO 可以透過sqlite的ORDER BY 來調整順序。
+		// TODO 可以透過sqlite的ORDER BY 來調整順序。
 		for (int location = 0; location < layers.size(); location++) {
 			HashMap<String, Object> item = new HashMap<String, Object>();
 			item.put(LA_FIELD_LAYER_NAME, layers.get(location).getLayerName());
 			item.put(LA_FIELD_CREATE_AT, layers.get(location).getCreateAt());
+			Log.d("mdb", "ca:　" +layers.get(location).getCreateAt());
 			item.put(LA_FIELD_DISPLAY, layers.get(location).getDisplay());
 			listLayers.add(item);
 		}
@@ -95,7 +101,6 @@ public class LayersList extends Activity {
 				listLayers, R.layout.layers_infomation, from, to);
 
 		layerOfList.setAdapter(simpleAdapter);
-
 	}// end of setListView()
 
 	// ========================================================================
@@ -215,13 +220,13 @@ class myOnItemLongClickListener implements OnItemLongClickListener {
 					context.startActivity(intent);
 				} else if (which == 1) {
 					// TODO update data to server
-					Toast.makeText(context, layerName +" is updated.", Toast.LENGTH_SHORT).show();
+					Toast.makeText(context, layerName + " is updated.",
+							Toast.LENGTH_SHORT).show();
 				} else if (which == 2) {
-					// TODO delete layer and placeMarks
 					dbHelper.deleteLayerRow(layerName);
 					dbHelper.deletePlaceMarkRows(layerName);
-					
-					Toast.makeText(context, layerName +" is deleted.", Toast.LENGTH_SHORT).show();
+					Toast.makeText(context, layerName + " is deleted.",
+							Toast.LENGTH_SHORT).show();
 					Intent intent = new Intent(context, LayersList.class);
 					context.startActivity(intent);
 				} else {
