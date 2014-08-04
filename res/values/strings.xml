@@ -4,7 +4,7 @@
     <!-- ACTIVITY NAME -->
     <string name="app_name">One Maps</string>
     <string name="list_sd_card">Add KML file to Map:</string>
-    <string name="layers_list">Layers of List:</string>
+    <string name="layers_list">List of Layers:</string>
     <string name="layers_manage">Manage Layers</string>
     <string name="layer_info_detials">Detials of Layer</string>
 

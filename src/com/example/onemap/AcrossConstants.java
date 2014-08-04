@@ -48,11 +48,12 @@ public class AcrossConstants implements BaseColumns {
 	// =======================================================================
 	// ===== SQLITE SYNTAX ===================================================
 	// =======================================================================
+	// TODO CREATE FROM COLUMN (該起上傳功能的前置)
 	public static final String INIT_LA_TABLE = "CREATE TABLE IF NOT EXISTS "
 			+ TABLE_LAYERS + " (" + " _id INTEGER PRIMARY KEY AUTOINCREMENT, "
-			+ LA_FIELD_LAYER_NAME + " TEXT, " + LA_FIELD_LAYER_SIZE + " INTEGER, "
-			+ LA_FIELD_LDESC + " TEXT, " + LA_FIELD_CREATE_AT + " TEXT, "
-			+ LA_FIELD_DISPLAY + " TEXT);";
+			+ LA_FIELD_LAYER_NAME + " TEXT, " + LA_FIELD_LAYER_SIZE
+			+ " INTEGER, " + LA_FIELD_LDESC + " TEXT, " + LA_FIELD_CREATE_AT
+			+ " TEXT, " + LA_FIELD_DISPLAY + " TEXT);";
 
 	public static final String INIT_PM_TABLE = "CREATE TABLE IF NOT EXISTS "
 			+ TABLE_PLACE + " (" + " _id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -64,4 +65,4 @@ public class AcrossConstants implements BaseColumns {
 			+ TABLE_LAYERS;
 	public static final String DROP_PM_TABLE = "DROP TABLE IF EXISTS "
 			+ TABLE_PLACE;
-}// end of  AcrossConstants
+}// end of AcrossConstants

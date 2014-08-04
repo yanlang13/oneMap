@@ -6,11 +6,24 @@ import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.security.auth.PrivateCredentialPermission;
+
+import org.apache.commons.io.FileUtils;
+
 import com.example.onemap.MapTools;
+import com.google.android.gms.ads.a;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
@@ -21,6 +34,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -34,8 +48,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
@@ -99,13 +117,13 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		ds = new DefaultSettings(MainActivity.this);
 		setContentView(R.layout.single_maps);
 		progressDialog = new ProgressDialog(this);
-		
+
 		// MainActivity.this.deleteDatabase("oneMaps.db");
 		setLeftDrawer();
 		bigPO = new ArrayList<PolygonOptions>();
 		medPO = new ArrayList<PolygonOptions>();
 		smaPO = new ArrayList<PolygonOptions>();
-	
+
 		PolygonToMap = new PolygonOptions();
 		polygonList = new ArrayList<PolygonOptions>();
 
@@ -338,7 +356,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			startActivity(new Intent(MainActivity.this, ListSdCard.class));
 			return true;
 		} else if (id == R.id.action_test) {
-			new GetPolygonFromDB().execute(getApplicationContext());
+			drawOnCanvas();
+			// new GetPolygonFromDB().execute(getApplicationContext());
 			return true;
 		}// end of if id == ?
 		return super.onOptionsItemSelected(item);
@@ -347,7 +366,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// =========================================================================
 	// ======== ASYNCTACK CLASS ================================================
 	// =========================================================================
-
 	/**
 	 * 
 	 * @author acer
@@ -364,7 +382,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		protected void onPostExecute(HashMap<String, PolygonOptions> pos) {
 			// TODO 究竟是每個task的stack大小、LOOP的stack大小、Latlng大小的問題?
 			Log.d("mdb", "pos.size():" + pos.size());
-
 			Iterator<String> iterator = pos.keySet().iterator();
 
 			while (iterator.hasNext()) {
@@ -373,47 +390,11 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 				map.addPolygon(options);
 				System.gc();
 			}
-
 			pos.clear();
 
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}// end of if
-
-			// test
-			Location leftLocation = new Location("left");
-
-			leftLocation
-					.setLatitude(map.getProjection().getVisibleRegion().farLeft.latitude);
-			leftLocation
-					.setLongitude(map.getProjection().getVisibleRegion().farLeft.longitude);
-
-			Location rightLocation = new Location("rifht");
-			rightLocation
-					.setLatitude(map.getProjection().getVisibleRegion().farRight.latitude);
-			rightLocation
-					.setLongitude(map.getProjection().getVisibleRegion().farRight.longitude);
-
-			Paint paint = new Paint();
-			paint.setARGB(250, 0, 255, 0);
-			paint.setAntiAlias(true);
-			paint.setSubpixelText(true);
-			paint.setFakeBoldText(true);
-			paint.setStrokeWidth(5.0f);
-			paint.setStyle(Paint.Style.STROKE);
-			Bitmap arc = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888);
-			Canvas canvas = new Canvas(arc);
-			canvas.drawColor(0xFFFFFFFF);
-			canvas.drawLine((float) leftLocation.getLongitude(),
-					(float) leftLocation.getLatitude(),
-					(float) rightLocation.getLongitude(),
-					(float) rightLocation.getLatitude(), paint);
-
-			GroundOverlayOptions groundArc = new GroundOverlayOptions().image(
-					BitmapDescriptorFactory.fromBitmap(arc)).position(
-					map.getProjection().getVisibleRegion().farLeft, 10000);
-			map.addGroundOverlay(groundArc);
-			// toMapHandler.sendEmptyMessage(0);
 		}// end of onPostExecute
 	}// end of GetPolygonFromDB
 
@@ -519,5 +500,173 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	public void onConnectionFailed(ConnectionResult connectionResult) {
 		Log.d("mdb", "in onConnectionFailed");
 	}// end of onConnectionFailed
+
+	// =========================================================================
+	// ======== ABOUT CANVAS CLASS =============================================
+	// =========================================================================
+	private void drawOnCanvas() {
+		// TODO 運用Canvas 來繪圖
+		// declare variables
+		DBHelper dbHelper = new DBHelper(MainActivity.this);
+		List<PlaceMark> placeMarks = new ArrayList<PlaceMark>();
+		HashMap<String, ArrayList<LatLng>> layers = new HashMap<String, ArrayList<LatLng>>();
+
+		// 取出每個placeMark的Latlng的值
+		placeMarks = dbHelper.getDisplayPlaceMark();
+
+		for (PlaceMark placeMark : placeMarks) {
+			String styleLink = placeMark.getStyleLink();
+			try {
+				URL url = new URL(styleLink);
+				File file = new File(url.toURI());
+				String jsonString = FileUtils.readFileToString(file);
+				JSONObject json = new JSONObject(jsonString);
+				String coordinates = json.getString("coordinates");
+				ArrayList<LatLng> latLngs = OtherTools
+						.transCoorStringToLatLngs(coordinates);
+				layers.put(placeMark.getPlaceMarkName(), latLngs);
+			} catch (MalformedURLException e) {
+				Log.d("mdb", "DataBaseToMap.class: " + e.toString());
+			} catch (IOException e) {
+				Log.d("mdb", "DataBaseToMap.class: " + e.toString());
+			} catch (URISyntaxException e) {
+				Log.d("mdb", "DataBaseToMap.class: " + e.toString());
+			}// end of try
+		}// end of for
+
+		Iterator<String> iterator = layers.keySet().iterator();
+		while (iterator.hasNext()) {
+			String key = (String) iterator.next();
+			ArrayList<LatLng> latlngs = layers.get(key);
+			Log.d("mdb", latlngs.toString());
+
+			// TODO 確認BITMAP跟螢幕大小的關係，然後以此推算出座標點的位置。
+			Projection projection = map.getProjection();
+			Point farLeft = projection.toScreenLocation(projection
+					.getVisibleRegion().farLeft);
+			Point nearRight = projection.toScreenLocation(projection
+					.getVisibleRegion().nearRight);
+
+			double width = Math.abs(farLeft.x - nearRight.x);
+			double length = Math.abs(nearRight.y - farLeft.y);
+			Log.d("mdb", width + "");
+			Log.d("mdb", length + "");
+			Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
+					Bitmap.Config.ARGB_8888);
+
+			Paint paint = new Paint();
+			paint.setColor(Color.BLACK);
+			paint.setStyle(Paint.Style.STROKE);// 設置空心
+			Path path = new Path();
+
+			for (int index = 0; index < latlngs.size(); index++) {
+				Point point = projection.toScreenLocation(latlngs.get(index));
+				if (index == 0) {
+					path.moveTo(point.x, point.y);
+				} else {
+					path.lineTo(point.x, point.y);
+				}
+			}
+
+			// for (LatLng location : latlngs) {
+			// Point point = projection.toScreenLocation(location);
+			// path.moveTo(point.x, point.y);
+			// }
+			
+			path.close();
+			Canvas canvas = new Canvas(bitmap);
+			canvas.drawPath(path, paint);
+			GroundOverlayOptions ground = new GroundOverlayOptions();
+			ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
+			ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
+			map.addGroundOverlay(ground);
+		}
+
+		Log.d("mdb", "=====Cancas test=====");
+		// Bitmap設定的大小，似乎會影響path點座標
+		// Bitmap bitmap = Bitmap
+		// .createBitmap(1000, 1000, Bitmap.Config.ARGB_8888);
+		// Canvas canvas = new Canvas(bitmap);
+		//
+		// Paint paint = new Paint();
+		// paint.setColor(Color.BLACK);
+		// paint.setStyle(Paint.Style.STROKE);// 設置空心
+		// Path path = new Path();
+		// path.moveTo(0, 0);
+		// path.lineTo(93, 111);
+		// path.lineTo(1000, 1000);
+		// path.lineTo(234, 356);
+		// path.close();
+		//
+		// canvas.drawPath(path, paint);
+		// GroundOverlayOptions ground = new GroundOverlayOptions();
+		// ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
+		// LatLng location = map.getProjection().getVisibleRegion().farLeft;
+		// // ground.position(location, 100000);
+		// ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
+		// map.addGroundOverlay(ground);
+
+		// Location leftLocation = new Location("left");
+		// leftLocation
+		// .setLatitude(map.getProjection().getVisibleRegion().farLeft.latitude);
+		// leftLocation
+		// .setLongitude(map.getProjection().getVisibleRegion().farLeft.longitude);
+		//
+		// Location rightLocation = new Location("rifht");
+		// rightLocation
+		// .setLatitude(map.getProjection().getVisibleRegion().farRight.latitude);
+		// rightLocation
+		// .setLongitude(map.getProjection().getVisibleRegion().farRight.longitude);
+		//
+		// Paint paint = new Paint();
+		// paint.setARGB(250, 0, 255, 0);
+		// paint.setAntiAlias(true);
+		// paint.setSubpixelText(true);
+		// paint.setFakeBoldText(true);
+		// paint.setStrokeWidth(5.0f);
+		// paint.setStyle(Paint.Style.STROKE);
+		// Bitmap arc = Bitmap.createBitmap(500, 500,
+		// Bitmap.Config.ARGB_8888);
+		// Canvas canvas = new Canvas(arc);
+		// canvas.drawColor(0xFFFFFFFF);
+		// canvas.drawLine((float) leftLocation.getLongitude(),
+		// (float) leftLocation.getLatitude(),
+		// (float) rightLocation.getLongitude(),
+		// (float) rightLocation.getLatitude(), paint);
+		//
+		// GroundOverlayOptions groundArc = new
+		// GroundOverlayOptions().image(
+		// BitmapDescriptorFactory.fromBitmap(arc)).position(
+		// map.getProjection().getVisibleRegion().farLeft, 10000);
+		// map.addGroundOverlay(groundArc);
+	}// end of drawOnCanvas()
+
+	private Bitmap decodeFile(File f) {
+		try {
+			// decode image size
+			BitmapFactory.Options o = new BitmapFactory.Options();
+			o.inJustDecodeBounds = true;
+			BitmapFactory.decodeStream(new FileInputStream(f), null, o);
+			// Find the correct scale value. It should be the power of 2.
+			final int REQUIRED_SIZE = 70;
+			int width_tmp = o.outWidth, height_tmp = o.outHeight;
+			int scale = 1;
+			while (true) {
+				if (width_tmp / 2 < REQUIRED_SIZE
+						|| height_tmp / 2 < REQUIRED_SIZE)
+					break;
+				width_tmp /= 2;
+				height_tmp /= 2;
+				scale++;
+			}
+
+			// decode with inSampleSize
+			BitmapFactory.Options o2 = new BitmapFactory.Options();
+			o2.inSampleSize = scale;
+			return BitmapFactory.decodeStream(new FileInputStream(f), null, o2);
+		} catch (FileNotFoundException e) {
+		}
+		return null;
+	}
 }// end of MainActivity
 
