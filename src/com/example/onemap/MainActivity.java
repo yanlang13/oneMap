@@ -551,6 +551,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			double length = Math.abs(nearRight.y - farLeft.y);
 			Log.d("mdb", width + "");
 			Log.d("mdb", length + "");
+			// Bitmap設定的大小，會影響path點座標
 			Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
 					Bitmap.Config.ARGB_8888);
 
@@ -583,28 +584,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		}
 
 		Log.d("mdb", "=====Cancas test=====");
-		// Bitmap設定的大小，似乎會影響path點座標
-		// Bitmap bitmap = Bitmap
-		// .createBitmap(1000, 1000, Bitmap.Config.ARGB_8888);
-		// Canvas canvas = new Canvas(bitmap);
-		//
-		// Paint paint = new Paint();
-		// paint.setColor(Color.BLACK);
-		// paint.setStyle(Paint.Style.STROKE);// 設置空心
-		// Path path = new Path();
-		// path.moveTo(0, 0);
-		// path.lineTo(93, 111);
-		// path.lineTo(1000, 1000);
-		// path.lineTo(234, 356);
-		// path.close();
-		//
-		// canvas.drawPath(path, paint);
-		// GroundOverlayOptions ground = new GroundOverlayOptions();
-		// ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
-		// LatLng location = map.getProjection().getVisibleRegion().farLeft;
-		// // ground.position(location, 100000);
-		// ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
-		// map.addGroundOverlay(ground);
 
 		// Location leftLocation = new Location("left");
 		// leftLocation
