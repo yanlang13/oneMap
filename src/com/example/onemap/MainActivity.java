@@ -40,6 +40,8 @@ import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.VisibleRegion;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -356,7 +358,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			startActivity(new Intent(MainActivity.this, ListSdCard.class));
 			return true;
 		} else if (id == R.id.action_test) {
-			drawOnCanvas();
+			new DrawByBitmap().execute(getApplicationContext());
 			// new GetPolygonFromDB().execute(getApplicationContext());
 			return true;
 		}// end of if id == ?
@@ -366,10 +368,63 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// =========================================================================
 	// ======== ASYNCTACK CLASS ================================================
 	// =========================================================================
+	private class DrawByBitmap extends TaskDrawLayerByBitmap {
+		@Override
+		protected void onPreExecute() {
+			progressDialog.show();
+			progressDialog.setCanceledOnTouchOutside(false);
+		}
+
+		@Override
+		protected void onPostExecute(HashMap<String, ArrayList<LatLng>> layers) {
+			Iterator<String> iterator = layers.keySet().iterator();
+			Projection projection = map.getProjection();
+			VisibleRegion vr = map.getProjection().getVisibleRegion();
+			Point farLeft = projection.toScreenLocation(vr.farLeft);
+			Point nearRight = projection.toScreenLocation(vr.nearRight);
+			double width = Math.abs(farLeft.x - nearRight.x);
+			double length = Math.abs(nearRight.y - farLeft.y);
+
+			Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
+					Bitmap.Config.ARGB_8888);
+			Paint paint = new Paint();
+			paint.setColor(Color.BLACK);
+			paint.setStyle(Paint.Style.STROKE);// 設置空心
+			Path path = new Path();
+
+			while (iterator.hasNext()) {
+				String key = (String) iterator.next();
+				ArrayList<LatLng> latlngs = layers.get(key);
+				// TODO 確認BITMAP跟螢幕大小的關係，然後以此推算出座標點的位置。
+				// Bitmap設定的大小，會影響path點座標
+				for (int index = 0; index < latlngs.size(); index++) {
+					// TODO 這邊如果點是在畫面外，就不會畫了。了解原因~
+					Point point = projection.toScreenLocation(latlngs
+							.get(index));
+					if (index == 0) {
+						path.moveTo(point.x, point.y);
+					} else {
+						// TODO 做判斷式，在畫面外就不要LINETO了
+						path.lineTo(point.x, point.y);
+					}
+				}
+				path.close();
+			}
+
+			Canvas canvas = new Canvas(bitmap);
+			canvas.drawPath(path, paint);
+			GroundOverlayOptions ground = new GroundOverlayOptions();
+			ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
+			ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
+			map.addGroundOverlay(ground);
+			if (progressDialog.isShowing()) {
+				progressDialog.dismiss();
+			}// end of if
+		}// end of onPostExecute
+	}// end of TaskDrawByBitmap
+
 	/**
-	 * 
 	 * @author acer
-	 * 
 	 */
 	private class GetPolygonFromDB extends TaskDataBaseToMap {
 		@Override
@@ -505,119 +560,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// ======== ABOUT CANVAS CLASS =============================================
 	// =========================================================================
 	private void drawOnCanvas() {
-		// TODO 運用Canvas 來繪圖
-		// declare variables
-		DBHelper dbHelper = new DBHelper(MainActivity.this);
-		List<PlaceMark> placeMarks = new ArrayList<PlaceMark>();
-		HashMap<String, ArrayList<LatLng>> layers = new HashMap<String, ArrayList<LatLng>>();
 
-		// 取出每個placeMark的Latlng的值
-		placeMarks = dbHelper.getDisplayPlaceMark();
-
-		for (PlaceMark placeMark : placeMarks) {
-			String styleLink = placeMark.getStyleLink();
-			try {
-				URL url = new URL(styleLink);
-				File file = new File(url.toURI());
-				String jsonString = FileUtils.readFileToString(file);
-				JSONObject json = new JSONObject(jsonString);
-				String coordinates = json.getString("coordinates");
-				ArrayList<LatLng> latLngs = OtherTools
-						.transCoorStringToLatLngs(coordinates);
-				layers.put(placeMark.getPlaceMarkName(), latLngs);
-			} catch (MalformedURLException e) {
-				Log.d("mdb", "DataBaseToMap.class: " + e.toString());
-			} catch (IOException e) {
-				Log.d("mdb", "DataBaseToMap.class: " + e.toString());
-			} catch (URISyntaxException e) {
-				Log.d("mdb", "DataBaseToMap.class: " + e.toString());
-			}// end of try
-		}// end of for
-
-		Iterator<String> iterator = layers.keySet().iterator();
-		while (iterator.hasNext()) {
-			String key = (String) iterator.next();
-			ArrayList<LatLng> latlngs = layers.get(key);
-			Log.d("mdb", latlngs.toString());
-
-			// TODO 確認BITMAP跟螢幕大小的關係，然後以此推算出座標點的位置。
-			Projection projection = map.getProjection();
-			Point farLeft = projection.toScreenLocation(projection
-					.getVisibleRegion().farLeft);
-			Point nearRight = projection.toScreenLocation(projection
-					.getVisibleRegion().nearRight);
-
-			double width = Math.abs(farLeft.x - nearRight.x);
-			double length = Math.abs(nearRight.y - farLeft.y);
-			Log.d("mdb", width + "");
-			Log.d("mdb", length + "");
-			// Bitmap設定的大小，會影響path點座標
-			Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
-					Bitmap.Config.ARGB_8888);
-
-			Paint paint = new Paint();
-			paint.setColor(Color.BLACK);
-			paint.setStyle(Paint.Style.STROKE);// 設置空心
-			Path path = new Path();
-
-			for (int index = 0; index < latlngs.size(); index++) {
-				Point point = projection.toScreenLocation(latlngs.get(index));
-				if (index == 0) {
-					path.moveTo(point.x, point.y);
-				} else {
-					path.lineTo(point.x, point.y);
-				}
-			}
-
-			// for (LatLng location : latlngs) {
-			// Point point = projection.toScreenLocation(location);
-			// path.moveTo(point.x, point.y);
-			// }
-			
-			path.close();
-			Canvas canvas = new Canvas(bitmap);
-			canvas.drawPath(path, paint);
-			GroundOverlayOptions ground = new GroundOverlayOptions();
-			ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
-			ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
-			map.addGroundOverlay(ground);
-		}
-
-		Log.d("mdb", "=====Cancas test=====");
-
-		// Location leftLocation = new Location("left");
-		// leftLocation
-		// .setLatitude(map.getProjection().getVisibleRegion().farLeft.latitude);
-		// leftLocation
-		// .setLongitude(map.getProjection().getVisibleRegion().farLeft.longitude);
-		//
-		// Location rightLocation = new Location("rifht");
-		// rightLocation
-		// .setLatitude(map.getProjection().getVisibleRegion().farRight.latitude);
-		// rightLocation
-		// .setLongitude(map.getProjection().getVisibleRegion().farRight.longitude);
-		//
-		// Paint paint = new Paint();
-		// paint.setARGB(250, 0, 255, 0);
-		// paint.setAntiAlias(true);
-		// paint.setSubpixelText(true);
-		// paint.setFakeBoldText(true);
-		// paint.setStrokeWidth(5.0f);
-		// paint.setStyle(Paint.Style.STROKE);
-		// Bitmap arc = Bitmap.createBitmap(500, 500,
-		// Bitmap.Config.ARGB_8888);
-		// Canvas canvas = new Canvas(arc);
-		// canvas.drawColor(0xFFFFFFFF);
-		// canvas.drawLine((float) leftLocation.getLongitude(),
-		// (float) leftLocation.getLatitude(),
-		// (float) rightLocation.getLongitude(),
-		// (float) rightLocation.getLatitude(), paint);
-		//
-		// GroundOverlayOptions groundArc = new
-		// GroundOverlayOptions().image(
-		// BitmapDescriptorFactory.fromBitmap(arc)).position(
-		// map.getProjection().getVisibleRegion().farLeft, 10000);
-		// map.addGroundOverlay(groundArc);
 	}// end of drawOnCanvas()
 
 	private Bitmap decodeFile(File f) {

@@ -206,6 +206,7 @@ public class ListSdCard extends Activity {
 				} else {// 如果沒有重複layer name
 					// 如果不是kML FILE就不用新增到資料庫了
 					ParseKmlString pks = new ParseKmlString(kmlString);
+					//TODO pks.checkKmlFormat也要寫到asynkTask，才不會感覺卡住了。
 					if (pks.checkKmlFormat()) {
 						new KmlToDataBase().execute(ListSdCard.this, layerName,
 								kmlString);
