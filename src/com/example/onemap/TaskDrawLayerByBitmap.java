@@ -27,12 +27,11 @@ public class TaskDrawLayerByBitmap extends
 		Context context = params[0];
 		dbHelper = new DBHelper(context);
 		placeMarks = new ArrayList<PlaceMark>();
-		layers = new HashMap<String, ArrayList<LatLng>>();
-		// TODO 運用Canvas 來繪圖
-		// declare variables
-
-		// 取出每個placeMark的Latlng的值
 		placeMarks = dbHelper.getDisplayPlaceMark();
+		
+		//TODO 改善HashMap的速率
+		// 設好HashMap的Size能加快速度(少了resize的過程)
+		layers = new HashMap<String, ArrayList<LatLng>>(placeMarks.size() * 2);
 
 		for (PlaceMark placeMark : placeMarks) {
 			String styleLink = placeMark.getStyleLink();

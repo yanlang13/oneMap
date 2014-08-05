@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -369,14 +370,19 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// ======== ASYNCTACK CLASS ================================================
 	// =========================================================================
 	private class DrawByBitmap extends TaskDrawLayerByBitmap {
+		SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+		long startTime, endTime, spentTime;
+
 		@Override
 		protected void onPreExecute() {
 			progressDialog.show();
 			progressDialog.setCanceledOnTouchOutside(false);
+			startTime = System.currentTimeMillis();
 		}
 
 		@Override
 		protected void onPostExecute(HashMap<String, ArrayList<LatLng>> layers) {
+			// TODO 運用Canvas 來繪圖，改善速率
 			Iterator<String> iterator = layers.keySet().iterator();
 			Projection projection = map.getProjection();
 			VisibleRegion vr = map.getProjection().getVisibleRegion();
@@ -385,8 +391,11 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			double width = Math.abs(farLeft.x - nearRight.x);
 			double length = Math.abs(nearRight.y - farLeft.y);
 
+			// 確認BITMAP跟螢幕大小的關係，然後以此推算出座標點的位置。
 			Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
 					Bitmap.Config.ARGB_8888);
+			
+			// Bitmap設定的大小，會影響path點座標
 			Paint paint = new Paint();
 			paint.setColor(Color.BLACK);
 			paint.setStyle(Paint.Style.STROKE);// 設置空心
@@ -395,21 +404,20 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
 				ArrayList<LatLng> latlngs = layers.get(key);
-				// TODO 確認BITMAP跟螢幕大小的關係，然後以此推算出座標點的位置。
-				// Bitmap設定的大小，會影響path點座標
 				for (int index = 0; index < latlngs.size(); index++) {
-					// TODO 這邊如果點是在畫面外，就不會畫了。了解原因~
 					Point point = projection.toScreenLocation(latlngs
 							.get(index));
 					if (index == 0) {
 						path.moveTo(point.x, point.y);
 					} else {
 						// TODO 做判斷式，在畫面外就不要LINETO了
-						path.lineTo(point.x, point.y);
-					}
-				}
-				path.close();
-			}
+						if (point.x > farLeft.x && point.x < nearRight.x
+								&& point.y > farLeft.y && point.y < nearRight.y) {
+							path.lineTo(point.x, point.y);
+						}
+					}// end of if
+				}// end of for
+			}// end of while
 
 			Canvas canvas = new Canvas(bitmap);
 			canvas.drawPath(path, paint);
@@ -417,9 +425,17 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
 			ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
 			map.addGroundOverlay(ground);
+
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}// end of if
+			endTime = System.currentTimeMillis();
+			spentTime = endTime - startTime;
+			// 計算目前已過分鐘數
+			Long minius = (spentTime / 1000) / 60;
+			// 計算目前已過秒數
+			Long seconds = (spentTime / 1000) % 60;
+			Log.d("mdb", "spentTime: " + minius + ":" + seconds);
 		}// end of onPostExecute
 	}// end of TaskDrawByBitmap
 
