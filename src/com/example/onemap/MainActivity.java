@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import com.google.android.gms.ads.a;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.internal.ig;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -41,6 +43,7 @@ import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.VisibleRegion;
 
 import android.app.Activity;
@@ -72,6 +75,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -109,6 +114,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	List<PolygonOptions> bigPO;
 	List<PolygonOptions> medPO;
 	List<PolygonOptions> smaPO;
+
+	// 用在canvas
+	private Bitmap bitmap;
 
 	// =========================================================================
 	// ============ ACTIVITY LIFECYCLE =========================================
@@ -382,45 +390,88 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		@Override
 		protected void onPostExecute(HashMap<String, ArrayList<LatLng>> layers) {
-			// TODO 運用Canvas 來繪圖，改善速率
+			// TODO 改善Canvas的效率
 			Iterator<String> iterator = layers.keySet().iterator();
-			Projection projection = map.getProjection();
+			// Projection projection = map.getProjection();
 			VisibleRegion vr = map.getProjection().getVisibleRegion();
-			Point farLeft = projection.toScreenLocation(vr.farLeft);
-			Point nearRight = projection.toScreenLocation(vr.nearRight);
-			double width = Math.abs(farLeft.x - nearRight.x);
-			double length = Math.abs(nearRight.y - farLeft.y);
+			// Point farLeft = projection.toScreenLocation(vr.farLeft);
+			// Point nearRight = projection.toScreenLocation(vr.nearRight);
+			// double width = Math.abs(farLeft.x - nearRight.x);
+			// double length = Math.abs(nearRight.y - farLeft.y);
 
 			// 確認BITMAP跟螢幕大小的關係，然後以此推算出座標點的位置。
-			Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
-					Bitmap.Config.ARGB_8888);
-			
+			// Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
+			// Bitmap.Config.ARGB_8888);
+
 			// Bitmap設定的大小，會影響path點座標
 			Paint paint = new Paint();
-			paint.setColor(Color.BLACK);
+			paint.setColor(Color.RED);
 			paint.setStyle(Paint.Style.STROKE);// 設置空心
 			Path path = new Path();
 
+			// 將螢幕座標轉為地理座標
+			double farX = vr.farLeft.longitude;
+			double farY = vr.farLeft.latitude;
+			double nearX = vr.nearRight.longitude;
+			double nearY = vr.nearRight.latitude;
+			double width = Math.abs(farX - nearX);
+			double length = Math.abs(farY - nearY);
+
+			Log.d("mdb", vr.farLeft.toString() + " " + vr.nearRight.toString());
+			Log.d("mdb", "width= " + width * 100 + " ,length= " + length * 100);
+
+			// 如果距離過大，用*100會出現OOM
+			bitmap = Bitmap.createBitmap((int) width * 100, (int) length * 100,
+					Bitmap.Config.ARGB_8888);
+
+			double longitude;
+			double latitude;
+			float x;
+			float y;
+
+			// TODO 起始點不對，修改1000 計算點一的誤差，再做打算
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
 				ArrayList<LatLng> latlngs = layers.get(key);
 				for (int index = 0; index < latlngs.size(); index++) {
-					Point point = projection.toScreenLocation(latlngs
-							.get(index));
+					longitude = latlngs.get(index).longitude;
+					latitude = latlngs.get(index).latitude;
+					x = (float) Math.abs(longitude - farX) * 100;
+					y = (float) Math.abs(latitude - farY) * 100;
+					// Log.d("mdb", "longitude= " + longitude +
+					// ", latitude= "
+					// + latitude);
+					// Log.d("mdb", "x= " + x + ", y= " + y);
 					if (index == 0) {
-						path.moveTo(point.x, point.y);
+						path.moveTo(x, y);
 					} else {
-						// TODO 做判斷式，在畫面外就不要LINETO了
-						if (point.x > farLeft.x && point.x < nearRight.x
-								&& point.y > farLeft.y && point.y < nearRight.y) {
-							path.lineTo(point.x, point.y);
-						}
-					}// end of if
-				}// end of for
-			}// end of while
+						path.lineTo(x, y);
+					}
+				}
+			}
+			path.close();
 
+			// //將地理座標轉為點螢幕座標
+			// while (iterator.hasNext()) {
+			// String key = (String) iterator.next();
+			// ArrayList<LatLng> latlngs = layers.get(key);
+			// for (int index = 0; index < latlngs.size(); index++) {
+			// Point point = projection.toScreenLocation(latlngs
+			// .get(index));
+			// if (index == 0) {
+			// path.moveTo(point.x, point.y);
+			// } else {
+			// // TODO 做判斷式，在畫面外就不要LINETO了
+			// if (point.x > farLeft.x && point.x < nearRight.x
+			// && point.y > farLeft.y && point.y < nearRight.y) {
+			// path.lineTo(point.x, point.y);
+			// }
+			// }// end of if
+			// }// end of for
+			// }// end of while
 			Canvas canvas = new Canvas(bitmap);
 			canvas.drawPath(path, paint);
+
 			GroundOverlayOptions ground = new GroundOverlayOptions();
 			ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
 			ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
@@ -571,40 +622,5 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	public void onConnectionFailed(ConnectionResult connectionResult) {
 		Log.d("mdb", "in onConnectionFailed");
 	}// end of onConnectionFailed
-
-	// =========================================================================
-	// ======== ABOUT CANVAS CLASS =============================================
-	// =========================================================================
-	private void drawOnCanvas() {
-
-	}// end of drawOnCanvas()
-
-	private Bitmap decodeFile(File f) {
-		try {
-			// decode image size
-			BitmapFactory.Options o = new BitmapFactory.Options();
-			o.inJustDecodeBounds = true;
-			BitmapFactory.decodeStream(new FileInputStream(f), null, o);
-			// Find the correct scale value. It should be the power of 2.
-			final int REQUIRED_SIZE = 70;
-			int width_tmp = o.outWidth, height_tmp = o.outHeight;
-			int scale = 1;
-			while (true) {
-				if (width_tmp / 2 < REQUIRED_SIZE
-						|| height_tmp / 2 < REQUIRED_SIZE)
-					break;
-				width_tmp /= 2;
-				height_tmp /= 2;
-				scale++;
-			}
-
-			// decode with inSampleSize
-			BitmapFactory.Options o2 = new BitmapFactory.Options();
-			o2.inSampleSize = scale;
-			return BitmapFactory.decodeStream(new FileInputStream(f), null, o2);
-		} catch (FileNotFoundException e) {
-		}
-		return null;
-	}
 }// end of MainActivity
 
