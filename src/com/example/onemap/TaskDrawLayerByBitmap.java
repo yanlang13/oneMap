@@ -20,7 +20,7 @@ public class TaskDrawLayerByBitmap extends
 	private DBHelper dbHelper;
 	private List<PlaceMark> placeMarks;
 	private HashMap<String, ArrayList<LatLng>> layers;
-
+	
 	@Override
 	protected HashMap<String, ArrayList<LatLng>> doInBackground(
 			Context... params) {
@@ -28,8 +28,8 @@ public class TaskDrawLayerByBitmap extends
 		dbHelper = new DBHelper(context);
 		placeMarks = new ArrayList<PlaceMark>();
 		placeMarks = dbHelper.getDisplayPlaceMark();
-		
-		//TODO 改善HashMap的速率
+
+		// TODO 改善HashMap的速率
 		// 設好HashMap的Size能加快速度(少了resize的過程)
 		layers = new HashMap<String, ArrayList<LatLng>>(placeMarks.size() * 2);
 

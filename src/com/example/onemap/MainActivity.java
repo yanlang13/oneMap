@@ -35,6 +35,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.Projection;
@@ -160,6 +161,14 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		setUpSingleMapIfNeeded(ds.getBaseMap());
 
 		setUpLocationClientIfNeeded();
+
+		map.setOnMapClickListener(new OnMapClickListener() {
+			@Override
+			public void onMapClick(LatLng point) {
+				Toast.makeText(getApplicationContext(), point + "",
+						Toast.LENGTH_SHORT).show();
+			}
+		});
 	}// end of onResume()
 
 	@Override
@@ -377,6 +386,10 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// =========================================================================
 	// ======== ASYNCTACK CLASS ================================================
 	// =========================================================================
+
+	/**
+	 * LatLng轉point再畫圖，非常慢。
+	 */
 	private class DrawByBitmap extends TaskDrawLayerByBitmap {
 		SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
 		long startTime, endTime, spentTime;
@@ -392,18 +405,106 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		protected void onPostExecute(HashMap<String, ArrayList<LatLng>> layers) {
 			// TODO 改善Canvas的效率
 			Iterator<String> iterator = layers.keySet().iterator();
-			// Projection projection = map.getProjection();
+			Projection projection = map.getProjection();
 			VisibleRegion vr = map.getProjection().getVisibleRegion();
-			// Point farLeft = projection.toScreenLocation(vr.farLeft);
-			// Point nearRight = projection.toScreenLocation(vr.nearRight);
-			// double width = Math.abs(farLeft.x - nearRight.x);
-			// double length = Math.abs(nearRight.y - farLeft.y);
+			Point pointFarLeft = projection.toScreenLocation(vr.farLeft);
+			Point pointNearRight = projection.toScreenLocation(vr.nearRight);
+
+			// 比較座標
+			double fLng = vr.farLeft.longitude;
+			double fLat = vr.farLeft.latitude;
+			double nLng = vr.nearRight.longitude;
+			double nLat = vr.nearRight.latitude;
+			double tempLng;
+			double tempLat;
+			Point tempPoint;
+			String test = String.format(
+					"fLLng=%s, fLLat=%s, nRLng=%s, nRtLat=%s", fLng, fLat,
+					nLng, nLat);
+			Log.d("mdb", test);
+
+			double width = Math.abs(pointFarLeft.x - pointNearRight.x);
+			double length = Math.abs(pointFarLeft.y - pointNearRight.y);
 
 			// 確認BITMAP跟螢幕大小的關係，然後以此推算出座標點的位置。
-			// Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
-			// Bitmap.Config.ARGB_8888);
+			Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
+					Bitmap.Config.ARGB_8888);
 
-			// Bitmap設定的大小，會影響path點座標
+			Paint paint = new Paint();
+			paint.setColor(Color.RED);
+			paint.setStyle(Paint.Style.STROKE);// 設置空心
+			Path path = new Path();
+
+			// 將地理座標轉為點螢幕座標
+			while (iterator.hasNext()) {
+				String key = (String) iterator.next();
+				ArrayList<LatLng> latlngs = layers.get(key);
+				for (int index = 0; index < latlngs.size(); index++) {
+					// 先比較座標，再看要不要轉換成點座標，可增加速度
+					tempLng = latlngs.get(index).longitude;
+					tempLat = latlngs.get(index).latitude;
+
+					// TODO 地理座標的判斷，有四個象限需要處理。
+					if (tempLng > fLng && tempLng < nLng && tempLat < fLat
+							&& tempLat > nLat) {
+						Log.d("mdb", "=====inside=====");
+						// TODO 感覺可以另存剩下的點，平行移動時舊的保留，新的再加入。
+						tempPoint = projection.toScreenLocation(latlngs
+								.get(index));
+						// TODO 修正path.moveTo的錯誤
+						if (index == 0) {
+							path.moveTo(tempPoint.x, tempPoint.y);
+						} else {
+							path.lineTo(tempPoint.x, tempPoint.y);
+						}// end of if
+					} else {
+						Log.d("mdb", "outside");
+					}
+				}// end of for
+			}// end of while
+
+			Canvas canvas = new Canvas(bitmap);
+			canvas.drawPath(path, paint);
+
+			// TODO 改善bitmap的創造
+			GroundOverlayOptions ground = new GroundOverlayOptions();
+			ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
+			ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
+			map.addGroundOverlay(ground);
+
+			if (progressDialog.isShowing()) {
+				progressDialog.dismiss();
+			}// end of if
+
+			endTime = System.currentTimeMillis();
+			spentTime = endTime - startTime;
+			// 計算目前已過分鐘數
+			Long minius = (spentTime / 1000) / 60;
+			// 計算目前已過秒數
+			Long seconds = (spentTime / 1000) % 60;
+			Log.d("mdb", "spentTime: " + minius + ":" + seconds);
+		}// end of onPostExecute
+	}// end of TaskDrawByBitmap
+
+	/**
+	 * 運用Latlng來畫點(座標偏差問題，畫面大小問題)
+	 */
+	private class DrawByBitmapLatlng extends TaskDrawLayerByBitmap {
+		SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+		long startTime, endTime, spentTime;
+
+		@Override
+		protected void onPreExecute() {
+			progressDialog.show();
+			progressDialog.setCanceledOnTouchOutside(false);
+			startTime = System.currentTimeMillis();
+		}
+
+		@Override
+		protected void onPostExecute(HashMap<String, ArrayList<LatLng>> layers) {
+			Iterator<String> iterator = layers.keySet().iterator();
+			VisibleRegion vr = map.getProjection().getVisibleRegion();
+
 			Paint paint = new Paint();
 			paint.setColor(Color.RED);
 			paint.setStyle(Paint.Style.STROKE);// 設置空心
@@ -429,7 +530,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			float x;
 			float y;
 
-			// TODO 起始點不對，修改1000 計算點一的誤差，再做打算
+			// TODO 感覺是誤差?
 			while (iterator.hasNext()) {
 				String key = (String) iterator.next();
 				ArrayList<LatLng> latlngs = layers.get(key);
@@ -438,40 +539,24 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 					latitude = latlngs.get(index).latitude;
 					x = (float) Math.abs(longitude - farX) * 100;
 					y = (float) Math.abs(latitude - farY) * 100;
-					// Log.d("mdb", "longitude= " + longitude +
-					// ", latitude= "
-					// + latitude);
-					// Log.d("mdb", "x= " + x + ", y= " + y);
+					Log.d("mdb", "x= " + x + ", y= " + y);
 					if (index == 0) {
-						path.moveTo(x, y);
+						path.moveTo(0, 0);
+						// path.moveTo((float) farX, (float) farY);
+						path.lineTo(x, y);
 					} else {
 						path.lineTo(x, y);
 					}
 				}
+				// TODO 確認右下角的位置
+				path.lineTo((float) width * 100, (float) length * 100);
 			}
 			path.close();
 
-			// //將地理座標轉為點螢幕座標
-			// while (iterator.hasNext()) {
-			// String key = (String) iterator.next();
-			// ArrayList<LatLng> latlngs = layers.get(key);
-			// for (int index = 0; index < latlngs.size(); index++) {
-			// Point point = projection.toScreenLocation(latlngs
-			// .get(index));
-			// if (index == 0) {
-			// path.moveTo(point.x, point.y);
-			// } else {
-			// // TODO 做判斷式，在畫面外就不要LINETO了
-			// if (point.x > farLeft.x && point.x < nearRight.x
-			// && point.y > farLeft.y && point.y < nearRight.y) {
-			// path.lineTo(point.x, point.y);
-			// }
-			// }// end of if
-			// }// end of for
-			// }// end of while
 			Canvas canvas = new Canvas(bitmap);
 			canvas.drawPath(path, paint);
 
+			// TODO 改善bitmap的創造
 			GroundOverlayOptions ground = new GroundOverlayOptions();
 			ground.image(BitmapDescriptorFactory.fromBitmap(bitmap));
 			ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
@@ -482,9 +567,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			}// end of if
 			endTime = System.currentTimeMillis();
 			spentTime = endTime - startTime;
-			// 計算目前已過分鐘數
 			Long minius = (spentTime / 1000) / 60;
-			// 計算目前已過秒數
 			Long seconds = (spentTime / 1000) % 60;
 			Log.d("mdb", "spentTime: " + minius + ":" + seconds);
 		}// end of onPostExecute
