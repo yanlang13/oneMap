@@ -21,6 +21,7 @@ import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import com.google.android.gms.ads.doubleclick.PublisherAdRequest;
 import com.google.android.gms.maps.model.LatLng;
 
 import android.graphics.Color;
@@ -214,7 +215,7 @@ public class OtherTools {
 		Date date = new Date();
 		return dateFormat.format(date);
 	}// end of getDataTime
-	
+
 	/**
 	 * Translation KML Coordinate String to LatLngs (copy from ParsingKmlString)
 	 * 
@@ -243,4 +244,22 @@ public class OtherTools {
 		}
 		return latLngs;
 	}// end of transCoorStringToLatLngs
+
+	/**
+	 * 使用System.currentTimeMillis()取得當下的開始時間
+	 * 
+	 * @param startTime
+	 * @return
+	 */
+	public static String getOperationTime(Long startTime) {
+		long endTime, spentTime;
+		endTime = System.currentTimeMillis();
+		spentTime = endTime - startTime;
+		// 計算目前已過分鐘數
+		Long minius = (spentTime / 1000) / 60;
+		// 計算目前已過秒數
+		Long seconds = (spentTime / 1000) % 60;
+
+		return "(spentTime: " + minius + ":" + seconds + ")";
+	}// end of String getOperationTime
 }// end of Class OtherTools
