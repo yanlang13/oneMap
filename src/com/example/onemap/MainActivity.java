@@ -6,33 +6,15 @@ import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.security.auth.PrivateCredentialPermission;
-
-import org.apache.commons.io.FileUtils;
-
 import com.example.onemap.MapTools;
-import com.google.android.gms.ads.a;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.a.d;
-import com.google.android.gms.internal.ig;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -49,7 +31,6 @@ import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.VisibleRegion;
 
 import android.R.integer;
@@ -61,7 +42,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -72,8 +52,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
@@ -82,8 +60,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -120,6 +96,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// 用在canvas
 	private Bitmap bitmap;
 
+	// 確認地圖上有無東西
+	private List<GroundOverlayOptions> listOverlay;
+
 	// =========================================================================
 	// ============ ACTIVITY LIFECYCLE =========================================
 	// =========================================================================
@@ -136,6 +115,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		PolygonToMap = new PolygonOptions();
 		polygonList = new ArrayList<PolygonOptions>();
+		listOverlay = new ArrayList<GroundOverlayOptions>();
+
 	}// end of onCreate
 
 	/**
@@ -165,6 +146,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 						Toast.LENGTH_SHORT).show();
 			}
 		});
+		// 有zoom的改變再修正
 		map.setOnCameraChangeListener(new zoomCheckListener(map));
 
 	}// end of onResume()
@@ -260,7 +242,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// =========================================================================
 	/**
 	 * 偵測zoom level有沒有縮放大於1，有的話就重畫canvas
-	 * 
 	 */
 	class zoomCheckListener implements OnCameraChangeListener {
 		private float zoomLevel;
@@ -271,11 +252,11 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		@Override
 		public void onCameraChange(CameraPosition position) {
-			float change = position.zoom - zoomLevel;
-			if (change > 1 || change < -1) {
+			if (listOverlay != null && position.zoom != zoomLevel) {
 				map.clear();
-				new DrawByBitmap().execute(getApplicationContext());
-				this.zoomLevel = zoomLevel + change;
+				listOverlay.clear();
+				new DrawBitmapByLatlng().execute(getApplicationContext(),map);
+				this.zoomLevel = position.zoom;
 			}
 		}
 	}// end of zoomCheckListener
@@ -398,8 +379,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			startActivity(new Intent(MainActivity.this, ListSdCard.class));
 			return true;
 		} else if (id == R.id.action_test) {
-			new DrawByBitmap().execute(getApplicationContext());
+			// new DrawByBitmap().execute(getApplicationContext());
 			// new GetPolygonFromDB().execute(getApplicationContext());
+			new DrawBitmapByLatlng().execute(getApplicationContext(),map);
 			return true;
 		}// end of if id == ?
 		return super.onOptionsItemSelected(item);
@@ -522,9 +504,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	/**
 	 * 運用Latlng來畫點(座標偏差問題，畫面大小問題)
 	 */
-	private class DrawByBitmapLatlng extends TaskDrawLayerByBitmap {
-		SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-		long startTime, endTime, spentTime;
+	private class DrawBitmapByLatlng extends TaskDrawLayerByBitmap {
+		long startTime;
+		String spentTime;
 
 		@Override
 		protected void onPreExecute() {
@@ -535,56 +517,77 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		@Override
 		protected void onPostExecute(HashMap<String, ArrayList<LatLng>> layers) {
-			Iterator<String> iterator = layers.keySet().iterator();
-			VisibleRegion vr = map.getProjection().getVisibleRegion();
+			spentTime = OtherTools.getOperationTime(startTime);
+			Log.d("mdb", "===== backGround running: " + spentTime);
 
+			VisibleRegion vr = map.getProjection().getVisibleRegion();
 			Paint paint = new Paint();
 			paint.setColor(Color.RED);
 			paint.setStyle(Paint.Style.STROKE);// 設置空心
 			Path path = new Path();
 
-			// 將螢幕座標轉為地理座標
-			double farX = vr.farLeft.longitude;
-			double farY = vr.farLeft.latitude;
-			double nearX = vr.nearRight.longitude;
-			double nearY = vr.nearRight.latitude;
-			double width = Math.abs(farX - nearX);
-			double length = Math.abs(farY - nearY);
+			// 左上角與右下角兩點
+			LatLng farLeft = vr.farLeft;
+			LatLng nearRight = vr.nearRight;
 
-			Log.d("mdb", vr.farLeft.toString() + " " + vr.nearRight.toString());
-			Log.d("mdb", "width= " + width * 100 + " ,length= " + length * 100);
-
-			// 如果距離過大，用*100會出現OOM
-			bitmap = Bitmap.createBitmap((int) width * 100, (int) length * 100,
-					Bitmap.Config.ARGB_8888);
+			int width = 900;
+			int length = 1600;
+			bitmap = Bitmap
+					.createBitmap(width, length, Bitmap.Config.ARGB_8888);
 
 			double longitude;
 			double latitude;
+			double lastLongitude;
+			double lastLatitude;
+
+			double distanceX = nearRight.longitude - farLeft.longitude;
+			double distanceY = nearRight.latitude - farLeft.latitude;
+
 			float x;
 			float y;
+			float outX;
+			float outY;
 
 			// TODO 感覺是誤差?
-			while (iterator.hasNext()) {
-				String key = (String) iterator.next();
-				ArrayList<LatLng> latlngs = layers.get(key);
+			for (ArrayList<LatLng> latlngs : layers.values()) {
 				for (int index = 0; index < latlngs.size(); index++) {
-					longitude = latlngs.get(index).longitude;
-					latitude = latlngs.get(index).latitude;
-					x = (float) Math.abs(longitude - farX) * 100;
-					y = (float) Math.abs(latitude - farY) * 100;
-					Log.d("mdb", "x= " + x + ", y= " + y);
-					if (index == 0) {
-						path.moveTo(0, 0);
-						// path.moveTo((float) farX, (float) farY);
-						path.lineTo(x, y);
-					} else {
-						path.lineTo(x, y);
+					if (positionInScreen(map, latlngs.get(index))) {
+						longitude = latlngs.get(index).longitude;
+						latitude = latlngs.get(index).latitude;
+						x = (float) Math
+								.abs(((longitude - farLeft.longitude) / distanceX)
+										* width);
+
+						y = (float) Math
+								.abs(((latitude - farLeft.latitude) / distanceY)
+										* length);
+						// TODO 第一個in的點，其index未必等於零。所以錯誤。
+						if (path.isEmpty() | index == 0) {
+							path.moveTo(x, y);
+						} else {
+							if (!positionInScreen(map, latlngs.get(index - 1))) {
+								lastLongitude = latlngs.get(index - 1).longitude;
+								lastLatitude = latlngs.get(index - 1).latitude;
+								outX = (float) Math
+										.abs((lastLongitude - farLeft.longitude)
+												/ distanceX * width);
+								outY = (float) Math
+										.abs((lastLatitude - farLeft.latitude)
+												/ distanceY * length);
+								path.moveTo(outX, outY);
+								path.lineTo(x, y);
+							} else {
+								path.lineTo(x, y);
+							}
+						}
+					}else{
+						Log.d("mdb", "outside");
 					}
 				}
-				// TODO 確認右下角的位置
-				path.lineTo((float) width * 100, (float) length * 100);
-			}
-			path.close();
+			}// end of for
+
+			spentTime = OtherTools.getOperationTime(startTime);
+			Log.d("mdb", "===== Latlng to Path:  " + spentTime);
 
 			Canvas canvas = new Canvas(bitmap);
 			canvas.drawPath(path, paint);
@@ -595,14 +598,14 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			ground.positionFromBounds(map.getProjection().getVisibleRegion().latLngBounds);
 			map.addGroundOverlay(ground);
 
+			listOverlay.add(ground);
+
 			if (progressDialog.isShowing()) {
 				progressDialog.dismiss();
 			}// end of if
-			endTime = System.currentTimeMillis();
-			spentTime = endTime - startTime;
-			Long minius = (spentTime / 1000) / 60;
-			Long seconds = (spentTime / 1000) % 60;
-			Log.d("mdb", "spentTime: " + minius + ":" + seconds);
+
+			spentTime = OtherTools.getOperationTime(startTime);
+			Log.d("mdb", "===== Total: " + spentTime);
 		}// end of onPostExecute
 	}// end of TaskDrawByBitmap
 

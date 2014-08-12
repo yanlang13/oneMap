@@ -9,22 +9,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
+
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
 public class TaskDrawLayerByBitmap extends
-		AsyncTask<Context, Void, HashMap<String, ArrayList<LatLng>>> {
+		AsyncTask<Object, Void, HashMap<String, ArrayList<LatLng>>> {
 
 	private DBHelper dbHelper;
 	private List<PlaceMark> placeMarks;
 	private HashMap<String, ArrayList<LatLng>> layers;
-	
+	private GoogleMap map;
+	private Context context;
+
 	@Override
 	protected HashMap<String, ArrayList<LatLng>> doInBackground(
-			Context... params) {
-		Context context = params[0];
+			Object... params) {
+		context = (Context) params[0];
+		map = (GoogleMap) params[1];
 		dbHelper = new DBHelper(context);
 		placeMarks = new ArrayList<PlaceMark>();
 		placeMarks = dbHelper.getDisplayPlaceMark();
@@ -52,6 +57,9 @@ public class TaskDrawLayerByBitmap extends
 				Log.d("mdb", "DataBaseToMap.class: " + e.toString());
 			}// end of try
 		}// end of for
+		
+		
+		
 		Log.d("mdb", "=====end of doInBackground=====");
 		return layers;
 	}// end of doInBackground

@@ -65,6 +65,7 @@ public class ParseKmlString {
 	public boolean checkKmlFormat() {
 		// TODO checkKmlFotmat的判斷過慢，或許換到ASyncTask or 修正方法
 		// TODO 或許改用原本的JSON 會比較快
+		// TODO 如果KML FILE都沒有修改 要內建COLOR=WIHTE WIDTH = 1
 		if (jsonObject.has(KML)) {
 			if (jsonObject.getJSONObject(KML).has(DOCUMENT)) {
 				// KML- document- style
@@ -229,7 +230,6 @@ public class ParseKmlString {
 				width = LineStyle.getInt(WIDTH);
 			}
 		} else {
-
 			if (optStyle.getJSONObject(index).optJSONObject(LINESTYLE) == null) {
 				width = 0;
 			} else {

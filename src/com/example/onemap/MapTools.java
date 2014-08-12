@@ -92,6 +92,26 @@ public class MapTools {
 	}// end of getViewRegionHorizontalDistance
 
 	/**
+	 * 計算兩個latlng之間的距離(based on WGS84 ellipsoid)，單位m
+	 * 
+	 * @param position1
+	 * @param position2
+	 * @return
+	 */
+	public float getDistanceBetweenTwoLatng(LatLng position1, LatLng position2) {
+		Location location1 = new Location("point1");
+		Location location2 = new Location("point2");
+
+		location1.setLatitude(position1.latitude);
+		location1.setLongitude(position1.longitude);
+		location2.setLatitude(position2.latitude);
+		location2.setLongitude(position2.longitude);
+
+		return location1.distanceTo(location2);
+
+	}// end of getDistanceBetweenTwoLatng
+
+	/**
 	 * 做中心marker
 	 * 
 	 * @param map
@@ -128,7 +148,7 @@ public class MapTools {
 	 * @return if point in polygon return true, else return false;
 	 */
 	public boolean containsInPolygon(LatLng point, PolygonOptions po) {
-		//說明看EverNote
+		// 說明看EverNote
 		boolean oddTransitions = false;
 		List<LatLng> verticesPolygon = po.getPoints();
 		float x = (float) point.longitude;
