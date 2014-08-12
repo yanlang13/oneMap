@@ -7,7 +7,6 @@ import com.example.onemap.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.app.TaskStackBuilder;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;

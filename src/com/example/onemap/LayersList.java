@@ -12,7 +12,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
-import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -71,10 +70,9 @@ public class LayersList extends Activity {
 			dbHelper.close();
 		}
 	}// end of onPause()
-		// ========================================================================
-		// ==== ONCREATE METHODS
-		// ==================================================
-		// ========================================================================
+		// =====================================================================
+		// ==== ONCREATE METHODS ===============================================
+		// =====================================================================
 
 	/**
 	 * 透過extends simpleAadapter完成List View
@@ -85,7 +83,7 @@ public class LayersList extends Activity {
 			HashMap<String, Object> item = new HashMap<String, Object>();
 			item.put(LA_FIELD_LAYER_NAME, layers.get(location).getLayerName());
 			item.put(LA_FIELD_CREATE_AT, layers.get(location).getCreateAt());
-			Log.d("mdb", "ca:　" +layers.get(location).getCreateAt());
+			Log.d("mdb", "ca:　" + layers.get(location).getCreateAt());
 			item.put(LA_FIELD_DISPLAY, layers.get(location).getDisplay());
 			listLayers.add(item);
 		}

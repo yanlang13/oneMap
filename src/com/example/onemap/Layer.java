@@ -15,7 +15,7 @@ public class Layer {
 	}
 
 	public Layer(String layerName, int layerSize,String desciption, String display,
-			String pDesc, String styleLink, String CreateAt) {
+			String pDesc, String styleLink, String createAt) {
 		super();
 		this.layerName = layerName;
 		this.layerSize = layerSize;

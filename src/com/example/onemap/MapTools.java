@@ -128,18 +128,19 @@ public class MapTools {
 	 * @return if point in polygon return true, else return false;
 	 */
 	public boolean containsInPolygon(LatLng point, PolygonOptions po) {
+		//說明看EverNote
 		boolean oddTransitions = false;
 		List<LatLng> verticesPolygon = po.getPoints();
-		float x = (float) point.latitude;
-		float y = (float) point.longitude;
+		float x = (float) point.longitude;
+		float y = (float) point.latitude;
 
 		int verticesSize = po.getPoints().size();
 		float[] polyX = new float[verticesSize];
 		float[] polyY = new float[verticesSize];
 
 		for (int i = 0; i < verticesSize; i++) {
-			polyX[i] = (float) verticesPolygon.get(i).latitude;
-			polyY[i] = (float) verticesPolygon.get(i).longitude;
+			polyX[i] = (float) verticesPolygon.get(i).longitude;
+			polyY[i] = (float) verticesPolygon.get(i).latitude;
 		}
 
 		for (int i = 0, j = verticesSize - 1; i < verticesSize; j = i++) {

@@ -20,10 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import com.google.android.gms.ads.doubleclick.PublisherAdRequest;
 import com.google.android.gms.maps.model.LatLng;
-
 import android.graphics.Color;
 import android.os.Environment;
 import android.util.Log;
@@ -263,3 +260,4 @@ public class OtherTools {
 		return "(spentTime: " + minius + ":" + seconds + ")";
 	}// end of String getOperationTime
 }// end of Class OtherTools
+	

@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.security.auth.PrivateCredentialPermission;
 
@@ -29,17 +31,20 @@ import com.google.android.gms.ads.a;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.a.d;
 import com.google.android.gms.internal.ig;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -47,6 +52,7 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.VisibleRegion;
 
+import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -109,12 +115,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	private DefaultSettings ds; // 存取各種基本設定
 
 	PolygonOptions PolygonToMap;
-
 	List<PolygonOptions> polygonList;
-
-	List<PolygonOptions> bigPO;
-	List<PolygonOptions> medPO;
-	List<PolygonOptions> smaPO;
 
 	// 用在canvas
 	private Bitmap bitmap;
@@ -132,15 +133,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		// MainActivity.this.deleteDatabase("oneMaps.db");
 		setLeftDrawer();
-		bigPO = new ArrayList<PolygonOptions>();
-		medPO = new ArrayList<PolygonOptions>();
-		smaPO = new ArrayList<PolygonOptions>();
 
 		PolygonToMap = new PolygonOptions();
 		polygonList = new ArrayList<PolygonOptions>();
-
-		// new GetPolygonFromDB().execute(getApplicationContext());
-
 	}// end of onCreate
 
 	/**
@@ -162,6 +157,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
 		setUpLocationClientIfNeeded();
 
+		// 簡單抓經緯座標，輔助canvas的設定。
 		map.setOnMapClickListener(new OnMapClickListener() {
 			@Override
 			public void onMapClick(LatLng point) {
@@ -169,11 +165,14 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 						Toast.LENGTH_SHORT).show();
 			}
 		});
+		map.setOnCameraChangeListener(new zoomCheckListener(map));
+
 	}// end of onResume()
 
 	@Override
 	public void onPause() {
 		super.onPause();
+		// 關閉各種被開啟的服務
 		if (mLocationClient != null) {
 			mLocationClient.disconnect();
 		}
@@ -183,6 +182,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	@Override
 	protected void onStop() {
 		super.onStop();
+		// 儲存activity的內容
 		mapTools.saveTheLastCameraPosition(getApplicationContext(), map,
 				THE_LAST_CP);
 	}// end of onStop
@@ -259,6 +259,28 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 	// ======= ONRESUME METHODS=================================================
 	// =========================================================================
 	/**
+	 * 偵測zoom level有沒有縮放大於1，有的話就重畫canvas
+	 * 
+	 */
+	class zoomCheckListener implements OnCameraChangeListener {
+		private float zoomLevel;
+
+		public zoomCheckListener(GoogleMap map) {
+			this.zoomLevel = map.getCameraPosition().zoom;
+		}
+
+		@Override
+		public void onCameraChange(CameraPosition position) {
+			float change = position.zoom - zoomLevel;
+			if (change > 1 || change < -1) {
+				map.clear();
+				new DrawByBitmap().execute(getApplicationContext());
+				this.zoomLevel = zoomLevel + change;
+			}
+		}
+	}// end of zoomCheckListener
+
+	/**
 	 * @param position
 	 *            選擇哪一個base map。
 	 */
@@ -282,7 +304,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		}// end of if
 	}// end of setUpSingleMapIfNeeded
 
-	private void setUpLocationClientIfNeeded() { // call from onResume
+	private void setUpLocationClientIfNeeded() {
 		if (mLocationClient == null) {
 			// ConnectionCallback and OnConnectionFailedListener
 			mLocationClient = new LocationClient(getApplicationContext(), this,
@@ -405,7 +427,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			spentTime = OtherTools.getOperationTime(startTime);
 			Log.d("mdb", "===== backGround running: " + spentTime);
 
-			Iterator<String> iterator = layers.keySet().iterator();
 			Projection projection = map.getProjection();
 
 			// 確認BITMAP跟螢幕大小的關係，然後以此推算出座標點的位置。
@@ -415,7 +436,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 			double width = Math.abs(pointFarLeft.x - pointNearRight.x);
 			double length = Math.abs(pointFarLeft.y - pointNearRight.y);
 			Bitmap bitmap = Bitmap.createBitmap((int) width, (int) length,
-					Bitmap.Config.ARGB_8888);
+					Bitmap.Config.ARGB_4444);
 
 			// 比較座標
 			Point tempPointF;
@@ -439,6 +460,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 							path.moveTo(tempPointF.x, tempPointF.y);
 						} else {
 							// TODO 修正path.moveTo的錯誤
+							// TODO 運用起點等於終點的方式，抓po做contains，或是用LatlngBound來做
 							// inside的上一個點如果不在地圖內的話，就moveTo
 							if (!positionInScreen(map, latlngs.get(index - 1))) {
 								Point outsidePoint = projection
@@ -680,6 +702,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 		if (status.isProviderEnabled(LocationManager.GPS_PROVIDER)
 				|| status.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
 			// 連接服務，等待 onConnected時再將locationRequest的設定值交出
+			// TODO 可透過locationManager.getLastKnownLocation()來加快載入速度
 			mLocationClient.connect();
 		} else {
 			AlertDialog.Builder builder = new AlertDialog.Builder(

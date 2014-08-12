@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.google.android.gms.maps.model.LatLng;
-import android.graphics.Color;
-import android.util.Log;
 
 /**
  * 將KML的String轉成JSON formats
@@ -65,6 +63,8 @@ public class ParseKmlString {
 	 * @return true = KML(my format) ; false = not;
 	 */
 	public boolean checkKmlFormat() {
+		// TODO checkKmlFotmat的判斷過慢，或許換到ASyncTask or 修正方法
+		// TODO 或許改用原本的JSON 會比較快
 		if (jsonObject.has(KML)) {
 			if (jsonObject.getJSONObject(KML).has(DOCUMENT)) {
 				// KML- document- style
